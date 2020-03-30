@@ -4,7 +4,7 @@ sent = "Serge Ibaka -- the Oklahoma City Thunder forward who was born in the Con
 
 compression = "Serge Ibaka has been granted Spanish citizenship and will play in EuroBasket."
 
-dataset = {1: {"sent": sent, "compression": compression}}
+dataset = [[sent, compression], ]
 
 with open("../Google_dataset_news/pilot_dataset.json", "w") as f:
     json.dump(dataset, f)

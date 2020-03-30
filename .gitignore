@@ -3,3 +3,4 @@
 *.gz
 Google_dataset_news/sent-comp.train01.json
 Google_dataset_news/comp-data.eval.json
+*.swp
