@@ -1,3 +1,4 @@
+# https://www.pytorchtutorial.com/pytorch-sequence-model-and-lstm-networks/
 import json
 import numpy as np
 import torch
