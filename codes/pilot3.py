@@ -1,4 +1,5 @@
 # https://www.jianshu.com/p/dbf00b590c70
+import time
 import json
 import torch
 import torch.nn as nn
@@ -19,7 +20,7 @@ def give_label(pair):  # naive version
             j += 1
         else:
             labels.append(1)
-    return " ".join(sent), " ".join(map(str, labels))
+    return sent, labels
 
 
 def compress(sent, labels):
@@ -32,10 +33,10 @@ with open("../Google_dataset_news/pilot_dataset.json", "r") as f:
 training_data = [(sent.lower().split(), compr.lower().split())
                  for sent, compr in dataset
                  ]
-training_data = list(zip(*map(give_label, training_data)))
+training_data = list(map(give_label, training_data))
 
 word2ix = {}
-for sent in training_data[0]:
+for sent, compr in training_data:
     for word in sent:
         if word not in word2ix:
             word2ix[word] = len(word2ix)
@@ -45,10 +46,10 @@ label2ix = {0: 0, 1: 1, '<sos>': word2ix['<sos>'], '<eos>': word2ix['<eos>']}
 
 
 def prepare_seq(seq, to_ix):
-    idxs = ['<sos>', ]
+    idxs = [word2ix['<sos>'], ]
     idxs.extend([to_ix[w] for w in seq])
-    idxs.append('<eos>')
-    tensor = torch.LongTensor(idxs)
+    idxs.append(word2ix['<eos>'])
+    tensor = torch.LongTensor(idxs).view(-1, 1)
     return autograd.Variable(tensor)
 
 
@@ -136,3 +137,93 @@ DEC_DROPOUT = 0.2
 enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
 dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
 model = Seq2Seq(enc, dec, device)
+
+
+def init_weight(m):
+    for name, param in m.named_parameters():
+        nn.init.uniform_(param.data, -0.08, 0.08)
+
+
+model.apply(init_weight)
+
+optimizer = optim.Adam(model.parameters())
+criterion = nn.CrossEntropyLoss()
+
+
+def train(model, iterator, optimizer, criterion, clip):
+
+    model.train()
+    epoch_loss = 0
+
+    for i, batch in enumerate(iterator):
+        src = prepare_seq(batch[0], word2ix)
+        trg = prepare_seq(batch[1], label2ix)
+
+        optimizer.zero_grad()
+
+        output = model(src, trg)
+
+        output = output[1:].view(-1, output.shape[-1])
+        trg = trg[1:].view(-1)
+
+        loss = criterion(output, trg)
+        print(loss.item())
+
+        loss.backward()
+
+        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
+
+        optimizer.step()
+
+        epoch_loss += loss.item()
+
+    return epoch_loss / len(iterator)
+
+
+def evaluate(model, iterator, criterion):
+
+    model.eval()
+    epoch_loss = 0
+
+    with torch.no_grad():
+        for i, batch in enumerate(iterator):
+            src = batch.src
+            trg = batch.trg
+
+            output = model(src, trg, 0)
+
+            output = output[1:].view(-1, output.shape[-1])
+            trg = trg[1:].view(-1)
+
+            loss = criterion(output, trg)
+
+            epoch_loss += loss.item()
+
+    return epoch_loss / len(iterator)
+
+
+def epoch_time(start_time, end_time):
+    elapsed_time = end_time - start_time
+    elapsed_mins = int(elapsed_time / 60)
+    elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
+    return elapsed_mins, elapsed_secs
+
+
+N_EPOCHS = 2
+CLIP = 1
+
+best_valid_loss = float('inf')
+
+for epoch in range(N_EPOCHS):
+
+    start_time = time.time()
+
+    train_loss = train(model, training_data, optimizer, criterion, CLIP)
+
+    end_time = time.time()
+
+    epoch_mins, epoch_secs = epoch_time(start_time, end_time)
+
+    print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
+    print(
+        f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
