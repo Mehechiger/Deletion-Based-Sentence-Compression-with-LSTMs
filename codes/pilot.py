@@ -79,9 +79,6 @@ tag_to_ix = {0: 0, 1: 1}
 
 EMBEDDING_DIM = 128
 HIDDEN_DIM = 128
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix))
-loss_function = nn.NLLLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix))
 loss_function = nn.NLLLoss()
