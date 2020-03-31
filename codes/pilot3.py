@@ -27,7 +27,7 @@ def compress(sent, labels):
     return " ".join(sent[i] for i in range(len(sent)) if not labels[i])
 
 
-with open("../Google_dataset_news/pilot_dataset.json", "r") as f:
+with open("../Google_dataset_news/pilot3_dataset.json", "r") as f:
     dataset = json.load(f)
 
 training_data = [(sent.lower().split(), compr.lower().split())
