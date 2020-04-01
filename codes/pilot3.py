@@ -29,10 +29,10 @@ def give_label(tabular_dataset):  # naive version
             if k >= len(compr):
                 break
             elif orig[j] == compr[k]:
-                labels.append(0)
+                labels.append(1)
                 k += 1
             else:
-                labels.append(1)
+                labels.append(0)
         tabular_dataset.examples[i].compressed = labels
 
 
@@ -51,15 +51,15 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
         compr = []
         compr_trg = []
         for j in range(len(orig)):
-            if labels_[j] == 0:
+            if labels_[j] == 1:
                 compr.append(orig[j])
-            elif labels_[j] == 1:
+            elif labels_[j] == 0:
                 compr.append("<del>")
             else:
                 compr.append(labels_[j])
-            if trg_[j] == 0:
+            if trg_[j] == 1:
                 compr_trg.append(orig[j])
-            elif trg_[j] == 1:
+            elif trg_[j] == 0:
                 compr_trg.append("<del>")
             else:
                 compr_trg.append(trg_[j])
@@ -105,7 +105,7 @@ give_label(test)
 train, _ = train.split(split_ratio=0.001)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
-#test, _ = train.split(split_ratio=0.5)
+#test, _ = train.split(split_ratio=0.1)
 test = train
 
 print("train: %s examples" % len(train.examples))
@@ -134,15 +134,11 @@ class Encoder(nn.Module):
         self.emb_dim = emb_dim
         self.hid_dim = hid_dim
         self.n_layers = n_layers
-        #self.dropout = dropout
 
         self.embedding = nn.Embedding(input_dim, emb_dim)
         self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
-        #self.dropout = nn.Dropout(dropout)
 
     def forward(self, src):
-        #embedded = self.dropout(self.embedding(src))
-        src = torch.flip(src, [0, ])
         embedded = self.embedding(src)
         outputs, (hidden, cell) = self.rnn(embedded)
         return hidden, cell
@@ -157,7 +153,6 @@ class Decoder(nn.Module):
         self.hid_dim = hid_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
-        #self.dropout = dropout
 
         self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
         self.embedding_input = nn.Embedding(output_dim, emb_input_dim)
@@ -167,7 +162,6 @@ class Decoder(nn.Module):
                            dropout=dropout
                            )
         self.out = nn.Linear(hid_dim, output_dim)
-        #self.dropout = nn.Dropout(dropout)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, src, input, hidden, cell):
@@ -193,7 +187,7 @@ class Seq2Seq(nn.Module):
         assert encoder.n_layers == decoder.n_layers, \
             "Encoder and decoder must have equal number of layers!"
 
-    def forward(self, src, trg, teacher_forcing_ratio=0):
+    def forward(self, src, trg, teacher_forcing_ratio=1):
         batch_size = trg.shape[1]
         max_len = trg.shape[0]
         trg_vocab_size = self.decoder.output_dim
@@ -201,16 +195,17 @@ class Seq2Seq(nn.Module):
                               batch_size,
                               trg_vocab_size
                               ).to(self.device)
-        hidden, cell = self.encoder(src)
+        hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input = trg[0, :]
         src_ = src[0, :]
-        for t in range(1, max_len):
+        for t in range(max_len):
             output, hidden, cell = self.decoder(src_, input, hidden, cell)
             outputs[t] = output
             teacher_force = random.random() < teacher_forcing_ratio
             top1 = output.max(1)[1]
-            input = (trg[t] if teacher_force else top1)
-            src_ = src[t]
+            if t+1 < max_len:
+                input = trg[t+1] if teacher_force else top1
+                src_ = src[t+1]
         return outputs
 
 
@@ -221,7 +216,7 @@ DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = len(COMPR.vocab)
 HID_DIM = INPUT_DIM
 N_LAYERS = 3
-ENC_DROPOUT = 0.2
+ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(INPUT_DIM,
               ENC_EMB_DIM,
@@ -240,16 +235,19 @@ dec = Decoder(INPUT_DIM,
 model = Seq2Seq(enc, dec, DEVICE)
 
 
+"""
 def init_weight(m):
     for name, param in m.named_parameters():
         nn.init.uniform_(param.data, -0.08, 0.08)
 
 
 model.apply(init_weight)
+"""
 
 optimizer = optim.Adam(model.parameters())
 PAD_IDX = COMPR.vocab.stoi['<pad>']
-criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
+#criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
+criterion = nn.NLLLoss(ignore_index=PAD_IDX)
 
 
 def train(model, iterator, optimizer, criterion, clip, verbose=False):
