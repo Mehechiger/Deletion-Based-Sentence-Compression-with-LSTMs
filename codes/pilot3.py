@@ -105,7 +105,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
+train, _ = train.split(split_ratio=0.001)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
@@ -272,7 +272,15 @@ def train(model, iterator, optimizer, criterion, clip, verbose=False):
 
         optimizer.zero_grad()
 
-        output = model(src, trg)
+        try:
+            output = model(src, trg)
+        except RuntimeError as exception:
+            if "out of memory" in str(exception):
+                print("WARNING: out of memory")
+                if hasattr(torch.cuda, 'empty_cache'):
+                    torch.cuda.empty_cache()
+            else:
+                raise exception
 
         if verbose:
             print(compress_with_labels(
@@ -310,7 +318,15 @@ def evaluate(model, iterator, criterion, verbose=False):
             src = batch.original
             trg = batch.compressed
 
-            output = model(src, trg, 0)
+            try:
+                output = model(src, trg, 0)
+            except RuntimeError as exception:
+                if "out of memory" in str(exception):
+                    print("WARNING: out of memory")
+                    if hasattr(torch.cuda, 'empty_cache'):
+                        torch.cuda.empty_cache()
+                else:
+                    raise exception
 
             if verbose:
                 print(compress_with_labels(
@@ -338,7 +354,7 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 100
+N_EPOCHS = 10000
 CLIP = 1
 
 best_valid_loss = float('inf')
