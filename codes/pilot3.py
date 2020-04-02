@@ -119,7 +119,7 @@ print("test: %s examples" % len(test.examples))
 
 vectors_cache = "/Users/mehec/Google Drive/vector_cache" \
     if DEVICE == torch.device("cpu")\
-    else "/content/drive/My\ Drive/vector_cache"
+    else "/content/drive/My Drive/vector_cache"
 ORIG.build_vocab(train,
                  min_freq=1,
                  vectors="glove.840B.300d",
