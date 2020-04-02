@@ -11,6 +11,7 @@ from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(DEVICE)
 #SpaCy_EN = spacy.load("en_core_web_sm")
 
 
