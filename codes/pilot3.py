@@ -11,7 +11,7 @@ from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(DEVICE)
+print("using device: %s" % DEVICE)
 #SpaCy_EN = spacy.load("en_core_web_sm")
 
 
@@ -234,6 +234,7 @@ dec = Decoder(INPUT_DIM,
               DEC_DROPOUT
               )
 model = Seq2Seq(enc, dec, DEVICE)
+model.to(DEVICE)
 
 
 """
