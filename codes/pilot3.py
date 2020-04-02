@@ -3,7 +3,6 @@
 import time
 import random
 import math
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.autograd as autograd
@@ -13,7 +12,7 @@ import spacy
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("using device: %s" % DEVICE)
+print("using device: %s\n" % DEVICE)
 #SpaCy_EN = spacy.load("en_core_web_sm")
 
 
@@ -40,12 +39,11 @@ def give_label(tabular_dataset):  # naive version
 
 
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
-    labels = labels.detach().cpu()
     for i in range(sent.shape[1]):
         orig = [orig_itos[sent[j, i]]
                 for j in range(sent.shape[0])
                 ]
-        labels_ = [compr_itos[np.argmax(labels, axis=2)[j, i]]
+        labels_ = [compr_itos[labels.max(2)[1][j, i]]
                    for j in range(labels.shape[0])
                    ]
         trg_ = [compr_itos[trg[j, i]]
@@ -218,23 +216,40 @@ class Seq2Seq(nn.Module):
                 src_ = src[t+1]
         return outputs
         """
-        """
         output, hidden, cell = self.decoder(src_, input, hidden, cell)
         outputs[0] = output
-        beam = [((hidden, cell), [], 1.0), ]
+        beam = [(hidden, cell, [], 1.0), ]
         for t in range(1, max_len):
             teacher_force = random.random() < teacher_forcing_ratio
             src_ = src[t]
-            if teacher_force:
+            # if teacher_force:
+            if not teacher_force:
                 input = trg[t]
             else:
                 next_beam = []
-                for (hidden, cell), labels, prob in beam:
+                for hidden, cell, labels, prob in beam:
                     output, hidden, cell = self.decoder(
                         src_, input, hidden, cell)
                     outputs[t] = output
-                beam = sorted(next_beam, key=lambda x: x[2])[:n]
-        return sorted(beam, key=lambda x: x[2])[0]
+                    for top in output.max(n):
+                        print(top)
+                        print(top.shape)
+                        exit()
+                        # next_beam.append((hidden, cell, labels+))
+                beam = sorted(next_beam, key=lambda x: x[3])[:n]
+        return sorted(beam, key=lambda x: x[3])[0][1]
+        """
+        beam = []
+        for t in range(max_len):
+            output, hidden, cell = self.decoder(src_, input, hidden, cell)
+            outputs = output
+            if t+1 < max_len:
+                src_ = src[t+1]
+                if random.random() < teacher_forcing_ratio:
+                    input = trg[t+1]
+                else:
+                    pass
+        return outputs
         """
         """
 
