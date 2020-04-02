@@ -129,7 +129,7 @@ ORIG.build_vocab(train,
                  )
 COMPR.build_vocab(train, min_freq=1)
 
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 
 train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     (train, val, test),
