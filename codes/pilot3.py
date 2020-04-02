@@ -12,7 +12,7 @@ from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
 
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DEVICE = torch.device("cpu")
 print("using device: %s\n" % DEVICE)
 #SpaCy_EN = spacy.load("en_core_web_sm")
@@ -124,7 +124,7 @@ vectors_cache = "/Users/mehec/Google Drive/vector_cache" \
     else "/content/drive/My Drive/vector_cache"
 ORIG.build_vocab(train,
                  min_freq=1,
-                 vectors="glove.840B.300d",
+                 vectors="glove.42B.300d",
                  vectors_cache=vectors_cache
                  )
 COMPR.build_vocab(train, min_freq=1)
@@ -264,7 +264,7 @@ ENC_EMB_DIM = 256
 DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = len(COMPR.vocab)
 HID_DIM = INPUT_DIM
-N_LAYERS = 1
+N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(INPUT_DIM,
