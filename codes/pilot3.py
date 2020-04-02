@@ -1,4 +1,6 @@
 # https://www.jianshu.com/p/dbf00b590c70
+# filippova 2015
+import argparse
 import time
 import random
 import math
@@ -9,6 +11,7 @@ import torch.autograd as autograd
 from torch import optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("using device: %s" % DEVICE)
@@ -102,8 +105,15 @@ give_label(test)
 
 """
 """
+argparser = argparse.ArgumentParser()
+argparser.add_argument("-t", "--train_portion")
+args = argparser.parse_args()
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.001)
+train, _ = train.split(
+    split_ratio=0.001
+    if not args.train_portion
+    else double(args.train_portion)
+)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
