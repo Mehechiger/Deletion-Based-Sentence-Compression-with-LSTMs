@@ -1,6 +1,5 @@
 # https://www.jianshu.com/p/dbf00b590c70
 # filippova 2015
-import argparse
 import time
 import random
 import math
@@ -15,7 +14,7 @@ import spacy
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("using device: %s" % DEVICE)
-#SpaCy_EN = spacy.load("en_core_web_sm")
+# SpaCy_EN = spacy.load("en_core_web_sm")
 
 
 def tokenizer(text):
@@ -105,18 +104,11 @@ give_label(test)
 
 """
 """
-argparser = argparse.ArgumentParser()
-argparser.add_argument("-t", "--train_portion")
-args = argparser.parse_args()
 # for testing use only small amount of data
-train, _ = train.split(
-    split_ratio=0.001
-    if not args.train_portion
-    else double(args.train_portion)
-)
+train, _ = train.split(split_ratio=0.001)
 val, _ = val.split(split_ratio=0.005)
-#test, _ = test.split(split_ratio=0.0005)
-#test, _ = train.split(split_ratio=0.1)
+# test, _ = test.split(split_ratio=0.0005)
+# test, _ = train.split(split_ratio=0.1)
 test = train
 
 print("train: %s examples" % len(train.examples))
@@ -193,10 +185,10 @@ class Seq2Seq(nn.Module):
         self.decoder = decoder
         self.device = device
 
-        assert encoder.hid_dim == decoder.hid_dim, \
-            "Hidden dimensions of encoder and decoder must be equal!"
-        assert encoder.n_layers == decoder.n_layers, \
-            "Encoder and decoder must have equal number of layers!"
+        assert encoder.hid_dim == decoder.hid_dim,
+        "Hidden dimensions of encoder and decoder must be equal!"
+        assert encoder.n_layers == decoder.n_layers,
+        "Encoder and decoder must have equal number of layers!"
 
     def forward(self, src, trg, teacher_forcing_ratio=1):
         batch_size = trg.shape[1]
@@ -258,7 +250,7 @@ model.apply(init_weight)
 
 optimizer = optim.Adam(model.parameters())
 PAD_IDX = COMPR.vocab.stoi['<pad>']
-#criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
+# criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 criterion = nn.NLLLoss(ignore_index=PAD_IDX)
 
 
