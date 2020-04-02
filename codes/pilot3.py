@@ -105,7 +105,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.1)
+train, _ = train.split(split_ratio=0.3)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
@@ -210,6 +210,23 @@ class Seq2Seq(nn.Module):
                 input = trg[t+1] if teacher_force else top1
                 src_ = src[t+1]
         return outputs
+        """
+        """
+        beam = []
+        for t in range(max_len):
+            output, hidden, cell = self.decoder(src_, input, hidden, cell)
+            outputs[t] = output
+            beam.append(((hidde, cell), [], 1.0))
+            teacher_force = random.random() < teacher_forcing_ratio
+            if t+1 < max_len:
+                src_ = src[t+1]
+                if teacher_force:
+                    input = trg[t+1]
+                else:
+                    pass
+        return sorted(beam, key=lambda x: x[2])[0]
+        """
+        """
 
 
 INPUT_DIM = len(ORIG.vocab)
@@ -239,18 +256,8 @@ model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
 
-"""
-def init_weight(m):
-    for name, param in m.named_parameters():
-        nn.init.uniform_(param.data, -0.08, 0.08)
-
-
-model.apply(init_weight)
-"""
-
 optimizer = optim.Adam(model.parameters())
 PAD_IDX = COMPR.vocab.stoi['<pad>']
-#criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 criterion = nn.NLLLoss(ignore_index=PAD_IDX)
 
 
