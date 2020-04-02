@@ -124,7 +124,7 @@ vectors_cache = "/Users/mehec/Google Drive/vector_cache" \
     else "/content/drive/My Drive/vector_cache"
 ORIG.build_vocab(train,
                  min_freq=1,
-                 vectors="glove.42B.300d",
+                 vectors="glove.6B.300d",
                  vectors_cache=vectors_cache
                  )
 COMPR.build_vocab(train, min_freq=1)
