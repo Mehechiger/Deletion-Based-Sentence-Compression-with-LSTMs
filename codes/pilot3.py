@@ -1,5 +1,6 @@
 # https://www.jianshu.com/p/dbf00b590c70
 # filippova 2015
+import os
 import time
 import random
 import math
@@ -119,7 +120,7 @@ print("test: %s examples" % len(test.examples))
 """
 
 vectors_cache = "/Users/mehec/Google Drive/vector_cache" \
-    if DEVICE == torch.device("cpu")\
+    if not os.path.isdir("/content/")\
     else "/content/drive/My Drive/vector_cache"
 ORIG.build_vocab(train,
                  min_freq=1,
