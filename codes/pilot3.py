@@ -38,7 +38,7 @@ def give_label(tabular_dataset):  # naive version
 
 
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
-    labels = labels.detach()
+    labels = labels.detach().cpu()
     for i in range(sent.shape[1]):
         orig = [orig_itos[sent[j, i]]
                 for j in range(sent.shape[0])
