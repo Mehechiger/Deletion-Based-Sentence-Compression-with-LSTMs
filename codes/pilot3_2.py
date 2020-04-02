@@ -31,10 +31,10 @@ def give_label(tabular_dataset):  # naive version
             if k >= len(compr):
                 break
             elif orig[j] == compr[k]:
-                labels.append(1)
+                labels.append(orig[j])
                 k += 1
             else:
-                labels.append(0)
+                labels.append("<del>")
         tabular_dataset.examples[i].compressed = labels
 
 
@@ -43,27 +43,12 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
         orig = [orig_itos[sent[j, i]]
                 for j in range(sent.shape[0])
                 ]
-        labels_ = [compr_itos[labels.max(2)[1][j, i]]
-                   for j in range(labels.shape[0])
-                   ]
-        trg_ = [compr_itos[trg[j, i]]
-                for j in range(trg.shape[0])
-                ]
-        compr = []
-        compr_trg = []
-        for j in range(len(orig)):
-            if labels_[j] == 1:
-                compr.append(orig[j])
-            elif labels_[j] == 0:
-                compr.append("<del>")
-            else:
-                compr.append(labels_[j])
-            if trg_[j] == 1:
-                compr_trg.append(orig[j])
-            elif trg_[j] == 0:
-                compr_trg.append("<del>")
-            else:
-                compr_trg.append(trg_[j])
+        compr = [compr_itos[labels.max(2)[1][j, i]]
+                 for j in range(labels.shape[0])
+                 ]
+        compr_trg = [compr_itos[trg[j, i]]
+                     for j in range(trg.shape[0])
+                     ]
         print("original: ", " ".join(orig))
         print("compressed: ", " ".join(compr))
         print("gold: ", " ".join(compr_trg))
@@ -105,7 +90,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.02)
+train, _ = train.split(split_ratio=0.001)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
@@ -125,9 +110,13 @@ ORIG.build_vocab(train,
                  vectors="glove.840B.300d",
                  vectors_cache=vectors_cache
                  )
-COMPR.build_vocab(train, min_freq=1)
+COMPR.build_vocab(train,
+                  min_freq=1,
+                  vectors="glove.840B.300d",
+                  vectors_cache=vectors_cache
+                  )
 
-BATCH_SIZE = 16
+BATCH_SIZE = 9
 
 train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     (train, val, test),
@@ -262,7 +251,7 @@ ENC_EMB_DIM = 256
 DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = len(COMPR.vocab)
 HID_DIM = INPUT_DIM
-N_LAYERS = 1
+N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(INPUT_DIM,
@@ -287,7 +276,7 @@ optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
 
 
-def train(model, iterator, optimizer, criterion, verbose=False):
+def train(model, iterator, optimizer, criterion, clip, verbose=False):
 
     model.train()
     epoch_loss = 0
@@ -324,6 +313,8 @@ def train(model, iterator, optimizer, criterion, verbose=False):
         print(loss.item())
 
         loss.backward()
+
+        torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
 
         optimizer.step()
 
@@ -378,7 +369,8 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 2000
+N_EPOCHS = 10000
+CLIP = 0.0000001
 
 best_valid_loss = float('inf')
 
@@ -387,7 +379,7 @@ for epoch in range(N_EPOCHS):
     start_time = time.time()
 
     train_loss = train(model, train_iterator, optimizer,
-                       criterion, verbose=True)
+                       criterion, CLIP, verbose=True)
 
     end_time = time.time()
 
