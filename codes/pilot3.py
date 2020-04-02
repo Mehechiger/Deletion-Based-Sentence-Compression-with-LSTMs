@@ -117,7 +117,14 @@ print("test: %s examples" % len(test.examples))
 """
 """
 
-ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d")
+vectors_cache = "/Users/mehec/Google Drive/vector_cache" \
+    if DEVICE == torch.device("cpu")\
+    else "/content/drive/My\ Drive/vector_cache"
+ORIG.build_vocab(train,
+                 min_freq=1,
+                 vectors="glove.840B.300d",
+                 vectors_cache=vectors_cache
+                 )
 COMPR.build_vocab(train, min_freq=1)
 
 BATCH_SIZE = 9
@@ -190,7 +197,7 @@ class Seq2Seq(nn.Module):
         assert encoder.n_layers == decoder.n_layers, \
             "Encoder and decoder must have equal number of layers!"
 
-    def forward(self, src, trg, teacher_forcing_ratio=1):
+    def forward(self, src, trg, teacher_forcing_ratio=1, n=1):
         batch_size = trg.shape[1]
         max_len = trg.shape[0]
         trg_vocab_size = self.decoder.output_dim
@@ -212,18 +219,21 @@ class Seq2Seq(nn.Module):
         return outputs
         """
         """
-        beam = []
-        for t in range(max_len):
-            output, hidden, cell = self.decoder(src_, input, hidden, cell)
-            outputs[t] = output
-            beam.append(((hidde, cell), [], 1.0))
+        output, hidden, cell = self.decoder(src_, input, hidden, cell)
+        outputs[0] = output
+        beam = [((hidden, cell), [], 1.0), ]
+        for t in range(1, max_len):
             teacher_force = random.random() < teacher_forcing_ratio
-            if t+1 < max_len:
-                src_ = src[t+1]
-                if teacher_force:
-                    input = trg[t+1]
-                else:
-                    pass
+            src_ = src[t]
+            if teacher_force:
+                input = trg[t]
+            else:
+                next_beam = []
+                for (hidden, cell), labels, prob in beam:
+                    output, hidden, cell = self.decoder(
+                        src_, input, hidden, cell)
+                    outputs[t] = output
+                beam = sorted(next_beam, key=lambda x: x[2])[:n]
         return sorted(beam, key=lambda x: x[2])[0]
         """
         """
