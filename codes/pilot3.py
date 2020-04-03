@@ -129,7 +129,6 @@ ORIG.build_vocab(train,
                  vectors_cache=vectors_cache
                  )
 COMPR.build_vocab(train, min_freq=1)
-exit()
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
@@ -142,6 +141,7 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     sort=False,
     device=DEVICE
 )
+exit()
 
 
 class Encoder(nn.Module):
