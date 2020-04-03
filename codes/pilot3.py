@@ -1,5 +1,6 @@
 # https://www.jianshu.com/p/dbf00b590c70
 # filippova 2015
+# gpu performance improvement: https://zhuanlan.zhihu.com/p/65002487
 import os
 import time
 import random
@@ -129,7 +130,8 @@ ORIG.build_vocab(train,
                  )
 COMPR.build_vocab(train, min_freq=1)
 
-BATCH_SIZE = 8
+BATCH_SIZE = 2
+ACCUMULATION_STEPS = 8
 
 train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     (train, val, test),
@@ -289,7 +291,7 @@ optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
 
 
-def train(model, iterator, optimizer, criterion, verbose=False):
+def train(model, iterator, optimizer, criterion, verbose=False, accumulation_steps=1):
 
     model.train()
     epoch_loss = 0
@@ -323,11 +325,11 @@ def train(model, iterator, optimizer, criterion, verbose=False):
         loss = criterion(output, trg)
         print(loss.item())
 
-        optimizer.zero_grad()
-
         loss.backward()
 
-        optimizer.step()
+        if ((i+1) % accumulation_steps) == 0:
+            optimizer.step()
+            optimizer.zero_grad()
 
         epoch_loss += loss.item()
 
@@ -388,8 +390,13 @@ for epoch in range(N_EPOCHS):
 
     start_time = time.time()
 
-    train_loss = train(model, train_iterator, optimizer,
-                       criterion, verbose=True)
+    train_loss = train(model,
+                       train_iterator,
+                       optimizer,
+                       criterion,
+                       verbose=True,
+                       accumulation_steps=ACCUMULATION_STEPS
+                       )
 
     end_time = time.time()
 
