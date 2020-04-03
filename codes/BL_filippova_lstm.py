@@ -235,7 +235,8 @@ class Seq2Seq(nn.Module):
         return outputs
         """
         output, hidden, cell = self.decoder(src_, input, hidden, cell)
-        beam = [(hidden, cell, input, 1.0, [output, ]), ]
+        prob = torch.zeros(batch_size, 1).to(self.device)
+        beam = [(hidden, cell, input, prob, [output, ]), ]
         for t in range(1, max_len):
             teacher_force = random.random() < teacher_forcing_ratio
             src_ = src[t]
