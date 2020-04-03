@@ -281,7 +281,7 @@ dec = Decoder(INPUT_DIM,
               N_LAYERS,
               DEC_DROPOUT
               )
-model = Seq2Seq(enc, dec, DEVICE)
+model = Seq2Seq(enc, dec, torch.device("cpu"))
 model.to(DEVICE)
 
 
