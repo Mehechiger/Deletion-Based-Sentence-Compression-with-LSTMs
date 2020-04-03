@@ -114,11 +114,11 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.0001)
-val, _ = val.split(split_ratio=0.005)
+#train, _ = train.split(split_ratio=0.0001)
+#val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
-test = train
+#test = train
 
 print("train: %s examples" % len(train.examples))
 print("val: %s examples" % len(val.examples))
