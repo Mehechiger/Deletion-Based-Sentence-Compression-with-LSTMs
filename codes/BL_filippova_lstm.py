@@ -212,7 +212,7 @@ class Seq2Seq(nn.Module):
         assert encoder.n_layers == decoder.n_layers, \
             "Encoder and decoder must have equal number of layers!"
 
-    def forward(self, src, trg, teacher_forcing_ratio=1, n=1):
+    def forward(self, src, trg, teacher_forcing_ratio=1, n=3):
         batch_size = trg.shape[1]
         max_len = trg.shape[0]
         trg_vocab_size = self.decoder.output_dim
@@ -223,6 +223,7 @@ class Seq2Seq(nn.Module):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input = trg[0, :]
         src_ = src[0, :]
+        """
         for t in range(max_len):
             output, hidden, cell = self.decoder(src_, input, hidden, cell)
             outputs[t] = output
@@ -244,15 +245,21 @@ class Seq2Seq(nn.Module):
                 input = trg[t]
             else:
                 next_beam = []
-                for hidden, cell, labels, prob in beam:
+                for hidden, cell, input, prob in beam:
                     output, hidden, cell = self.decoder(
                         src_, input, hidden, cell)
                     outputs[t] = output
-                    tops_idx = torch.topk(output, n, 1)
-                    for i in range(tops_idx.shape[0]):
-                        next_beam.append((hidden, cell, ))
-                beam = sorted(next_beam, key=lambda x: x[3])[:n]
+                    output_tops = torch.topk(output, n, 1)
+                    for i in range(output_tops[1].shape[1]):
+                        # if LogSoftmax then prob+ else *
+                        next_beam.append((hidden,
+                                          cell,
+                                          output_tops[1][:, i],
+                                          prob+output_tops[0][:, i]
+                                          ))
+                beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
         return outputs
+        """
         beam = []
         for t in range(max_len):
             output, hidden, cell = self.decoder(src_, input, hidden, cell)
