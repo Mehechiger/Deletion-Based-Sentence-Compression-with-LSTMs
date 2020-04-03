@@ -94,7 +94,7 @@ train_val = TabularDataset(
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True
 )
-give_label(train_val)
+# give_label(train_val)
 train, val = train_val.split(split_ratio=0.9)
 
 test = TabularDataset(
@@ -103,7 +103,7 @@ test = TabularDataset(
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True
 )
-give_label(test)
+# give_label(test)
 
 """
 """
@@ -128,6 +128,7 @@ ORIG.build_vocab(train,
                  vectors="glove.840B.300d",
                  vectors_cache=vectors_cache
                  )
+exit()
 COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
