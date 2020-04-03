@@ -286,8 +286,8 @@ dec = Decoder(INPUT_DIM,
               DEC_DROPOUT
               )
 model = Seq2Seq(enc, dec, DEVICE)
-model.to(DEVICE)
 exit()
+model.to(DEVICE)
 
 
 optimizer = optim.Adam(model.parameters())
