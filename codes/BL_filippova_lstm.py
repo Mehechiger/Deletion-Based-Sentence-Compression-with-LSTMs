@@ -114,7 +114,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.0001)
 #val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
@@ -167,7 +167,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, input_dim, output_dim, emb_src_dim, emb_input_dim, hid_dim, n_layers, dropout):
+    def __init__(self, input_dim, output_dim, emb_src_dim, emb_input_dim, hid_dim, n_layers, dropout, device):
         super().__init__()
 
         self.emb_src_dim = emb_src_dim
@@ -175,11 +175,12 @@ class Decoder(nn.Module):
         self.hid_dim = hid_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
+        self.device = device
 
         self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
         #self.embedding_input = nn.Embedding(output_dim, emb_input_dim)
         self.embedding_input = lambda l: torch.eye(
-            emb_input_dim)[l.view(-1)].unsqueeze(0)
+            emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
         self.rnn = nn.LSTM(emb_src_dim+emb_input_dim,
                            hid_dim,
                            n_layers,
@@ -289,7 +290,8 @@ dec = Decoder(INPUT_DIM,
               DEC_EMB_INPUT_DIM,
               HID_DIM,
               N_LAYERS,
-              DEC_DROPOUT
+              DEC_DROPOUT,
+              DEVICE
               )
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
