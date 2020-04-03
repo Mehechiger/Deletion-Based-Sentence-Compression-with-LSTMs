@@ -28,12 +28,6 @@ def give_label(tabular_dataset):  # naive version
     for i in range(len(tabular_dataset.examples)):
         orig = tabular_dataset.examples[i].original
         compr = tabular_dataset.examples[i].compressed
-        # temporary fix of the list index out of range
-        # pb caused by tokenization
-        if len(orig) != len(compr):
-            tabular_dataset.examples[i].original = []
-            tabular_dataset.examples[i].compressed = []
-            continue
         k = 0
         labels = []
         for j in range(len(orig)):
@@ -48,6 +42,12 @@ def give_label(tabular_dataset):  # naive version
 
 
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
+    # temporary fix of the list index out of range
+    # pb caused by tokenization
+    if sent.shape[1] == trg.shape[1] == labels.shape[1]:
+        pass
+    else:
+        return
     for i in range(sent.shape[1]):
         orig = [orig_itos[sent[j, i]]
                 for j in range(sent.shape[0])
