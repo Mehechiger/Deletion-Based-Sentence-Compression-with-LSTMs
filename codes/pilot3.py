@@ -28,6 +28,12 @@ def give_label(tabular_dataset):  # naive version
     for i in range(len(tabular_dataset.examples)):
         orig = tabular_dataset.examples[i].original
         compr = tabular_dataset.examples[i].compressed
+        # temporary fix of the list index out of range
+        # pb caused by tokenization
+        if len(orig) != len(compr):
+            tabular_dataset.examples[i].original = []
+            tabular_dataset.examples[i].compressed = []
+            continue
         k = 0
         labels = []
         for j in range(len(orig)):
@@ -108,11 +114,11 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.01)
+train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
-#test = train
+test = train
 
 print("train: %s examples" % len(train.examples))
 print("val: %s examples" % len(val.examples))
