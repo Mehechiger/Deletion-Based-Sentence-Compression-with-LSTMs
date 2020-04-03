@@ -141,7 +141,6 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     sort=False,
     device=DEVICE
 )
-exit()
 
 
 class Encoder(nn.Module):
@@ -292,6 +291,7 @@ model.to(DEVICE)
 
 optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
+exit()
 
 
 def train(model, iterator, optimizer, criterion, verbose=False, accumulation_steps=1):
