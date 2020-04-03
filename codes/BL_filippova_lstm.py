@@ -114,7 +114,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.01)
 #val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
@@ -240,8 +240,8 @@ class Seq2Seq(nn.Module):
         for t in range(1, max_len):
             teacher_force = random.random() < teacher_forcing_ratio
             src_ = src[t]
-            # if teacher_force:
-            if not teacher_force:
+            if teacher_force:
+                # if not teacher_force:
                 input = trg[t]
             else:
                 next_beam = []
@@ -259,21 +259,6 @@ class Seq2Seq(nn.Module):
                                           ))
                 beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
         return outputs
-        """
-        beam = []
-        for t in range(max_len):
-            output, hidden, cell = self.decoder(src_, input, hidden, cell)
-            outputs[t] = output
-            if t+1 < max_len:
-                src_ = src[t+1]
-                if random.random() < teacher_forcing_ratio:
-                    input = trg[t+1]
-                else:
-                    pass
-        return outputs
-        """
-        """
-        """
 
 
 INPUT_DIM = len(ORIG.vocab)
@@ -410,7 +395,7 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 200000
+N_EPOCHS = 200
 
 best_valid_loss = float('inf')
 
