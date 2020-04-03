@@ -108,11 +108,11 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=1)
+train, _ = train.split(split_ratio=0.01)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
-test = train
+#test = train
 
 print("train: %s examples" % len(train.examples))
 print("val: %s examples" % len(val.examples))
@@ -408,5 +408,8 @@ for epoch in range(N_EPOCHS):
     print(
         f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
 
-eval_loss = evaluate(model, test_iterator, criterion, verbose=True)
-print(eval_loss)
+    if train_loss == -1:
+        break
+
+#eval_loss = evaluate(model, test_iterator, criterion, verbose=True)
+# print(eval_loss)
