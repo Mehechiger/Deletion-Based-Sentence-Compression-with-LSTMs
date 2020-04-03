@@ -44,6 +44,7 @@ def give_label(tabular_dataset):  # naive version
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, print_out=False):
     # temporary fix of the list index out of range
     # pb caused by tokenization
+    res = []
     for i in range(sent.shape[1]):
         try:
             orig = [orig_itos[sent[j, i]]
@@ -72,12 +73,13 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, print_out=Fal
                     compr_trg.append(trg_[j])
         except IndexError:
             orig = compr = compr_trg = ["INDEX_ERROR", ]
-    if print_out:
-        print("original:   ", " ".join(orig))
-        print("compressed: ", " ".join(compr))
-        print("gold:       ", " ".join(compr_trg))
-        print()
-    return orig, compr, compr_trg
+        res.append((orig, compr, compr_trg))
+        if print_out:
+            print("original:   ", " ".join(orig))
+            print("compressed: ", " ".join(compr))
+            print("gold:       ", " ".join(compr_trg))
+            print()
+    return res
 
 
 ORIG = Field(
