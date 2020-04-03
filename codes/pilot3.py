@@ -94,7 +94,7 @@ train_val = TabularDataset(
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True
 )
-# give_label(train_val)
+give_label(train_val)
 train, val = train_val.split(split_ratio=0.9)
 
 test = TabularDataset(
@@ -103,7 +103,7 @@ test = TabularDataset(
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True
 )
-# give_label(test)
+give_label(test)
 
 """
 """
