@@ -287,11 +287,11 @@ dec = Decoder(INPUT_DIM,
               )
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
+exit()
 
 
 optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
-exit()
 
 
 def train(model, iterator, optimizer, criterion, verbose=False, accumulation_steps=1):
