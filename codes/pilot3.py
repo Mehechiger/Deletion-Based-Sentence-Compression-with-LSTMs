@@ -128,8 +128,8 @@ ORIG.build_vocab(train,
                  vectors="glove.840B.300d",
                  vectors_cache=vectors_cache
                  )
-exit()
 COMPR.build_vocab(train, min_freq=1)
+exit()
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
