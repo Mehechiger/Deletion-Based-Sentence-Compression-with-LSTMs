@@ -135,7 +135,7 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     (train, val, test),
     batch_size=BATCH_SIZE,
     sort=False,
-    device=DEVICE
+    device=torch.device("cpu")
 )
 
 
