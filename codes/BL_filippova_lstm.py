@@ -223,6 +223,7 @@ class Seq2Seq(nn.Module):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input = trg[0, :]
         src_ = src[0, :]
+        """
         for t in range(max_len):
             output, hidden, cell = self.decoder(src_, input, hidden, cell)
             outputs[t] = output
@@ -234,31 +235,68 @@ class Seq2Seq(nn.Module):
         return outputs
         """
         output, hidden, cell = self.decoder(src_, input, hidden, cell)
-        outputs[0] = output
-        beam = [(hidden, cell, input, 1.0), ]
+        beam = [(hidden, cell, input, 1.0, [output, ]), ]
         for t in range(1, max_len):
             teacher_force = random.random() < teacher_forcing_ratio
             src_ = src[t]
-            if teacher_force:
-                # if not teacher_force:
-                input = trg[t]
-            else:
-                next_beam = []
-                for hidden, cell, input, prob in beam:
-                    output, hidden, cell = self.decoder(
-                        src_, input, hidden, cell)
-                    outputs[t] = output
+            next_beam = []
+            for hidden, cell, input, prob, labels in beam:
+                output, hidden, cell = self.decoder(src_, input, hidden, cell)
+                if teacher_force:
+                    input = trg[t]
+                    # if LogSoftmax then prob+0 else *1
+                    next_beam.append((hidden,
+                                      cell,
+                                      input,
+                                      prob,
+                                      labels+[output, ]
+                                      ))
+                else:
                     output_tops = torch.topk(output, n, 1)
                     for i in range(output_tops[1].shape[1]):
                         # if LogSoftmax then prob+ else *
                         next_beam.append((hidden,
                                           cell,
                                           output_tops[1][:, i],
-                                          prob+output_tops[0][:, i]
+                                          prob+output_tops[0][:, i],
+                                          labels+[output, ]
+                                          ))
+            beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
+        labels = sorted(beam, key=lambda x: x[3].mean())[0][4]
+        for i in range(len(labels)):
+            outputs[i] = labels[i]
+        return outputs
+        """
+        """
+        output, hidden, cell = self.decoder(src_, input, hidden, cell)
+        #outputs[0] = output
+        beam = [(hidden, cell, input, 1.0, [output, ]), ]
+        for t in range(1, max_len):
+            src_ = src[t]
+            if random.random() < teacher_forcing_ratio:
+                input = trg[t]
+                output, hidden, cell = self.decoder(src_, input, hidden, cell)
+                #outputs[t] = output
+            else:
+                next_beam = []
+                for hidden, cell, input, prob, labels in beam:
+                    output, hidden, cell = self.decoder(src_,
+                                                        input,
+                                                        hidden,
+                                                        cell
+                                                        )
+                    #outputs[t] = output
+                    output_tops = torch.topk(output, n, 1)
+                    for i in range(output_tops[1].shape[1]):
+                        # if LogSoftmax then prob+ else *
+                        next_beam.append((hidden,
+                                          cell,
+                                          output_tops[1][:, i],
+                                          prob+output_tops[0][:, i],
+                                          labels+[output, ]
                                           ))
                 beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
         return outputs
-        """
 
 
 INPUT_DIM = len(ORIG.vocab)
