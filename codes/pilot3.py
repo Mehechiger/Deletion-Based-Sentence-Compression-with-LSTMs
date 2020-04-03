@@ -108,7 +108,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.1)
+train, _ = train.split(split_ratio=1)
 val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
@@ -124,14 +124,16 @@ vectors_cache = "/Users/mehec/Google Drive/vector_cache" \
     if not os.path.isdir("/content/")\
     else "/content/drive/My Drive/vector_cache"
 ORIG.build_vocab(train,
-                 min_freq=10,
+                 min_freq=3,
                  vectors="glove.840B.300d",
                  vectors_cache=vectors_cache
                  )
 COMPR.build_vocab(train, min_freq=1)
 
+# real batch size = BATCH_SIZE * ACCUMULATION_STEPS
+# -> gradient descend every accumulation_steps batches
 BATCH_SIZE = 2
-ACCUMULATION_STEPS = 8
+ACCUMULATION_STEPS = 64
 
 train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     (train, val, test),
