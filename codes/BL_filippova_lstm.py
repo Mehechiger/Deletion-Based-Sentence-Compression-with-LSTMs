@@ -1,13 +1,13 @@
-# https://www.jianshu.com/p/dbf00b590c70
 # filippova 2015
+# base structure: https://www.jianshu.com/p/dbf00b590c70
 # gpu performance improvement: https://zhuanlan.zhihu.com/p/65002487
+
 import os
 import time
 import random
 import math
 import torch
 import torch.nn as nn
-import torch.autograd as autograd
 from torch import optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
@@ -114,11 +114,11 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.0001)
+#train, _ = train.split(split_ratio=0.0001)
 #val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
-test = train
+val = test = train
 
 print("train: %s examples" % len(train.examples))
 print("val: %s examples" % len(val.examples))
@@ -177,7 +177,9 @@ class Decoder(nn.Module):
         self.n_layers = n_layers
 
         self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
-        self.embedding_input = nn.Embedding(output_dim, emb_input_dim)
+        #self.embedding_input = nn.Embedding(output_dim, emb_input_dim)
+        self.embedding_input = lambda l: torch.eye(
+            emb_input_dim)[l.view(-1)].unsqueeze(0)
         self.rnn = nn.LSTM(emb_src_dim+emb_input_dim,
                            hid_dim,
                            n_layers,
@@ -232,7 +234,7 @@ class Seq2Seq(nn.Module):
         """
         output, hidden, cell = self.decoder(src_, input, hidden, cell)
         outputs[0] = output
-        beam = [(hidden, cell, [], 1.0), ]
+        beam = [(hidden, cell, input, 1.0), ]
         for t in range(1, max_len):
             teacher_force = random.random() < teacher_forcing_ratio
             src_ = src[t]
@@ -245,18 +247,15 @@ class Seq2Seq(nn.Module):
                     output, hidden, cell = self.decoder(
                         src_, input, hidden, cell)
                     outputs[t] = output
-                    for top in output.max(n):
-                        print(top)
-                        print(top.shape)
-                        exit()
-                        # next_beam.append((hidden, cell, labels+))
+                    tops_idx = torch.topk(output, n, 1)
+                    for i in range(tops_idx.shape[0]):
+                        next_beam.append((hidden, cell, ))
                 beam = sorted(next_beam, key=lambda x: x[3])[:n]
-        return sorted(beam, key=lambda x: x[3])[0][1]
-        """
+        return outputs
         beam = []
         for t in range(max_len):
             output, hidden, cell = self.decoder(src_, input, hidden, cell)
-            outputs = output
+            outputs[t] = output
             if t+1 < max_len:
                 src_ = src[t+1]
                 if random.random() < teacher_forcing_ratio:
@@ -266,13 +265,14 @@ class Seq2Seq(nn.Module):
         return outputs
         """
         """
+        """
 
 
 INPUT_DIM = len(ORIG.vocab)
 OUTPUT_DIM = len(COMPR.vocab)
 ENC_EMB_DIM = 256
 DEC_EMB_SRC_DIM = 256
-DEC_EMB_INPUT_DIM = len(COMPR.vocab)
+DEC_EMB_INPUT_DIM = OUTPUT_DIM
 HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
 ENC_DROPOUT = 0
@@ -337,8 +337,8 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
                 COMPR.vocab.itos
             ))
 
-        output = output[1:].view(-1, output.shape[-1])
-        trg = trg[1:].view(-1)
+        output = output.view(-1, output.shape[-1])
+        trg = trg.view(-1)
 
         loss = criterion(output, trg)
         print(loss.item())
@@ -384,8 +384,8 @@ def evaluate(model, iterator, criterion, verbose=False):
                     COMPR.vocab.itos
                 ))
 
-            output = output[1:].view(-1, output.shape[-1])
-            trg = trg[1:].view(-1)
+            output = output.view(-1, output.shape[-1])
+            trg = trg.view(-1)
 
             loss = criterion(output, trg)
 
