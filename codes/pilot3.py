@@ -298,8 +298,6 @@ def train(model, iterator, optimizer, criterion, verbose=False):
         src = batch.original
         trg = batch.compressed
 
-        optimizer.zero_grad()
-
         try:
             output = model(src, trg)
         except RuntimeError as exception:
@@ -324,6 +322,8 @@ def train(model, iterator, optimizer, criterion, verbose=False):
 
         loss = criterion(output, trg)
         print(loss.item())
+
+        optimizer.zero_grad()
 
         loss.backward()
 
