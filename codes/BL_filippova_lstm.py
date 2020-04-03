@@ -41,7 +41,7 @@ def give_label(tabular_dataset):  # naive version
         tabular_dataset.examples[i].compressed = labels
 
 
-def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
+def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, print_out=False):
     # temporary fix of the list index out of range
     # pb caused by tokenization
     for i in range(sent.shape[1]):
@@ -72,11 +72,12 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
                     compr_trg.append(trg_[j])
         except IndexError:
             orig = compr = compr_trg = ["INDEX_ERROR", ]
-
+    if print_out:
         print("original:   ", " ".join(orig))
         print("compressed: ", " ".join(compr))
         print("gold:       ", " ".join(compr_trg))
         print()
+    return orig, compr, compr_trg
 
 
 ORIG = Field(
@@ -362,13 +363,14 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
                 raise exception
 
         if verbose:
-            print(compress_with_labels(
+            compress_with_labels(
                 src,
                 trg,
                 output,
                 ORIG.vocab.itos,
-                COMPR.vocab.itos
-            ))
+                COMPR.vocab.itos,
+                print_out=True
+            )
 
         output = output.view(-1, output.shape[-1])
         trg = trg.view(-1)
@@ -409,13 +411,14 @@ def evaluate(model, iterator, criterion, verbose=False):
                     raise exception
 
             if verbose:
-                print(compress_with_labels(
+                compress_with_labels(
                     src,
                     trg,
                     output,
                     ORIG.vocab.itos,
-                    COMPR.vocab.itos
-                ))
+                    COMPR.vocab.itos,
+                    print_out=True
+                )
 
             output = output.view(-1, output.shape[-1])
             trg = trg.view(-1)
