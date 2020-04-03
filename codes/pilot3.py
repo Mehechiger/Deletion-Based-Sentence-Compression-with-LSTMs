@@ -66,9 +66,9 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos):
                 compr_trg.append("<del>")
             else:
                 compr_trg.append(trg_[j])
-        print("original: ", " ".join(orig))
+        print("original:   ", " ".join(orig))
         print("compressed: ", " ".join(compr))
-        print("gold: ", " ".join(compr_trg))
+        print("gold:       ", " ".join(compr_trg))
         print()
 
 
