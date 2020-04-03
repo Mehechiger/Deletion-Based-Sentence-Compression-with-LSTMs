@@ -135,7 +135,7 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits(
     (train, val, test),
     batch_size=BATCH_SIZE,
     sort=False,
-    device=torch.device("cpu")
+    device=DEVICE
 )
 
 
@@ -281,8 +281,8 @@ dec = Decoder(INPUT_DIM,
               N_LAYERS,
               DEC_DROPOUT
               )
-model = Seq2Seq(enc, dec, torch.device("cpu"))
-model.to(DEVICE)
+model = Seq2Seq(enc, dec, DEVICE)
+# model.to(DEVICE)
 
 
 optimizer = optim.Adam(model.parameters())
