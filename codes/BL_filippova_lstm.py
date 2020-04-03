@@ -223,7 +223,6 @@ class Seq2Seq(nn.Module):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input = trg[0, :]
         src_ = src[0, :]
-        """
         for t in range(max_len):
             output, hidden, cell = self.decoder(src_, input, hidden, cell)
             outputs[t] = output
@@ -259,6 +258,7 @@ class Seq2Seq(nn.Module):
                                           ))
                 beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
         return outputs
+        """
 
 
 INPUT_DIM = len(ORIG.vocab)
