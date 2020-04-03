@@ -114,11 +114,11 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.0001)
 #val, _ = val.split(split_ratio=0.005)
 #test, _ = test.split(split_ratio=0.0005)
 #test, _ = train.split(split_ratio=0.1)
-#test = train
+test = train
 
 print("train: %s examples" % len(train.examples))
 print("val: %s examples" % len(val.examples))
@@ -295,6 +295,7 @@ model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
 
+"""
 LR = 2
 optimizer = optim.SGD(model.parameters(), lr=LR)
 STEP_SIZE = 300000/(BATCH_SIZE*ACCUMULATION_STEPS)
@@ -303,6 +304,8 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,
                                       step_size=STEP_SIZE,
                                       gamma=GAMMA
                                       )
+"""
+optimizer = optim.adam(model.parameters())
 criterion = nn.NLLLoss()
 
 
@@ -345,7 +348,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         if ((i+1) % accumulation_steps) == 0:
             optimizer.step()
             optimizer.zero_grad()
-            scheduler.step()
+            # scheduler.step()
 
         epoch_loss += loss.item()
 
