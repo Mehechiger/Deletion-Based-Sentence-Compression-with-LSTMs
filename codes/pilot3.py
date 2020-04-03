@@ -267,7 +267,7 @@ OUTPUT_DIM = len(COMPR.vocab)
 ENC_EMB_DIM = 256
 DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = len(COMPR.vocab)
-HID_DIM = INPUT_DIM
+HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
@@ -286,7 +286,6 @@ dec = Decoder(INPUT_DIM,
               DEC_DROPOUT
               )
 model = Seq2Seq(enc, dec, DEVICE)
-exit()
 model.to(DEVICE)
 
 
