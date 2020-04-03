@@ -124,7 +124,7 @@ vectors_cache = "/Users/mehec/Google Drive/vector_cache" \
     if not os.path.isdir("/content/")\
     else "/content/drive/My Drive/vector_cache"
 ORIG.build_vocab(train,
-                 min_freq=3,
+                 min_freq=1,
                  vectors="glove.840B.300d",
                  vectors_cache=vectors_cache
                  )
@@ -289,7 +289,14 @@ model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
 
-optimizer = optim.Adam(model.parameters())
+LR = 2
+optimizer = optim.SGD(model.parameters(), lr=LR)
+STEP_SIZE = 300000/(BATCH_SIZE*ACCUMULATION_STEPS)
+GAMMA = 0.96
+scheduler = optim.lr_scheduler.StepLR(optimizer,
+                                      step_size=STEP_SIZE,
+                                      gamma=GAMMA
+                                      )
 criterion = nn.NLLLoss()
 
 
@@ -332,6 +339,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         if ((i+1) % accumulation_steps) == 0:
             optimizer.step()
             optimizer.zero_grad()
+            scheduler.step()
 
         epoch_loss += loss.item()
 
@@ -408,8 +416,6 @@ for epoch in range(N_EPOCHS):
     print(
         f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
 
-    if train_loss <= 0:
-        break
 
-#eval_loss = evaluate(model, test_iterator, criterion, verbose=True)
-# print(eval_loss)
+eval_loss = evaluate(model, test_iterator, criterion, verbose=True)
+print(eval_loss)
