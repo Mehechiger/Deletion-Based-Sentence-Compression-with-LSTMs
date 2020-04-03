@@ -178,7 +178,7 @@ class Decoder(nn.Module):
                            dropout=dropout
                            )
         self.out = nn.Linear(hid_dim, output_dim)
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, input, hidden, cell):
         input = input.unsqueeze(0)
@@ -408,7 +408,7 @@ for epoch in range(N_EPOCHS):
     print(
         f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
 
-    if train_loss == -1:
+    if train_loss <= 0:
         break
 
 #eval_loss = evaluate(model, test_iterator, criterion, verbose=True)
