@@ -36,7 +36,7 @@ def outputter(*content, verbose=False):
 
 
 VERBOSE = 3
-TRAIN_VERBOSE = 0
+TRAIN_VERBOSE = 2
 TEST_VERBOSE = 3
 
 # clear output.log
@@ -408,7 +408,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         trg = trg.view(-1)
 
         loss = criterion(output, trg)
-        outputter(loss.item(), verbose=verbose)
+        outputter(loss.item(), verbose=3 if verbose == 2 else verbose)
 
         loss.backward()
 
