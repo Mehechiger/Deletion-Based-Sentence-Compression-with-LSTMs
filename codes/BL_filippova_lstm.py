@@ -463,11 +463,13 @@ for epoch in range(N_EPOCHS):
     print(
         f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
 
+    """
     if train_loss <= 0.01:
         break
+    """
 
     #val_loss = evaluate(model, val_iterator, criterion, verbose=True)
 
 
-eval_loss = evaluate(model, test_iterator, criterion, verbose=True)
-print(eval_loss)
+test_loss = evaluate(model, test_iterator, criterion, verbose=True)
+print(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}')
