@@ -36,6 +36,8 @@ def outputter(*content, verbose=False):
 
 
 VERBOSE = 3
+TRAIN_VERBOSE = 0
+TEST_VERBOSE = 3
 
 # clear output.log
 outputter(None, verbose=4)
@@ -479,7 +481,7 @@ for epoch in range(N_EPOCHS):
                        train_iterator,
                        optimizer,
                        criterion,
-                       verbose=VERBOSE,
+                       verbose=TRAIN_VERBOSE,
                        accumulation_steps=ACCUMULATION_STEPS
                        )
 
@@ -502,7 +504,7 @@ for epoch in range(N_EPOCHS):
     #val_loss = evaluate(model, val_iterator, criterion, verbose=2)
 
 
-test_loss = evaluate(model, test_iterator, criterion, verbose=VERBOSE)
+test_loss = evaluate(model, test_iterator, criterion, verbose=TEST_VERBOSE)
 outputter(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}',
           verbose=VERBOSE
           )

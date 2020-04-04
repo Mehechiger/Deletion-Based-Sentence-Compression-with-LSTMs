@@ -326,3 +326,164 @@ gold:       <eos> credit card purchases rose by 8.2% in <del> <del> <del> <del> 
 
 
 1.6031579971313477
+original:   <eos> sana'a, march 01 - yemen prepares to conduct soon a detailed study on the yemeni labors and how to be utilized in the gulf labor markets, minister of labor and social affairs amat al-razaq humad has said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> sana'a, march 01 - yemen prepares to conduct soon a detailed study on the yemeni labors and how to be utilized in the gulf labor markets, minister of labor and social affairs amat al-razaq humad has said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> yemen prepares to conduct <del> a detailed study on the <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a japanese court on thursday refused to reinstate a russian sumo wrestler who was expelled for marijuana possession and has since turned into a whistle-blower on the ancient sport. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a japanese court on thursday refused to reinstate a russian sumo wrestler who was expelled for marijuana possession and has since turned into a whistle-blower on the ancient sport. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a <del> court <del> <del> refused to reinstate a russian <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> republican john mccain said tuesday he knows ``how to win wars'' and that the strategy of increasing troop levels in iraq should also be applied to afghanistan. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> republican john mccain said tuesday he knows ``how to win wars'' and that the strategy of increasing troop levels in iraq should also be applied to afghanistan. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> john mccain said <del> he knows <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> sharon collins, who was convicted of soliciting a man to kill her partner and his two children, has been released from prison. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> sharon collins, who was convicted of soliciting a man to kill her partner and his two children, has been released from prison. <unk> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> sharon <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> president obama told reporters that ``the private sector is doing fine,'' as he attributed the high unemployment rate to a lack of government jobs. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> president obama told reporters that ``the private sector is doing fine,'' as he attributed the high unemployment rate to a lack of government jobs. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> obama told <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> the <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> the three new a/h1n1 flu cases confirmed tuesday in bulgaria take their own course, director of the national centre for disease prevention and control professor bogdan petrunov said for focus news agency. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> the three new a/h1n1 flu cases confirmed tuesday in bulgaria take their own course, director of the national centre for disease prevention and control professor bogdan petrunov said for focus news agency. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> the three <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> milan match brought forward due to snow updated: 04:58, friday february 3, 2012 ac milan's match against napoli has been brought forward to sunday afternoon because of adverse weather conditions, while cesena vs catania and roma vs inter milan will also be played earlier than scheduled. <eos>
+compressed: <eos> milan match brought forward due to snow updated: 04:58, friday february 3, 2012 ac milan's match against napoli has been brought forward to sunday afternoon because of adverse weather conditions, while cesena vs catania and roma vs inter milan will also be played earlier than scheduled. <eos>
+gold:       <eos> milan match brought forward due to <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos>
+
+
+original:   <eos> a polish man has been charged with the murder of a man whose body was found near bins in a residential street. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a polish man has been charged with the murder of a man whose body was found near bins in a residential street. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> whose body was found near <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> coaching legend larry brown will take over at new big east member smu next season. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> coaching legend larry brown will take over at new big east member smu next season. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> larry brown will take over at <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> this fall, blue cross and blue shield of minnesota plans to offer online doctor visits to its employees in minnesota and virginia. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> this fall, blue cross and blue shield of minnesota plans to offer online doctor visits to its employees in minnesota and virginia. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> blue cross and blue shield <del> <del> plans to offer online doctor <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> the most recent report says the sec is questioning tennessee about an october recruiting trip to st. thomas aquinas high school in fort lauderdale, fla. kiffin was accompanied by recruiting intern steve rubio, a st. thomas aquinas graduate and former volunteer assistant coach. <eos> <pad> <pad> <pad>
+compressed: <eos> the most recent report says the sec is questioning tennessee about an october recruiting trip to st. thomas aquinas high school in fort lauderdale, fla. kiffin was accompanied by recruiting intern steve rubio, a st. thomas aquinas graduate and former volunteer assistant coach. <eos> <pad> <pad> <pad>
+gold:       <eos> the <del> <del> <del> <del> <del> sec is questioning tennessee about an october recruiting <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad>
+
+
+original:   <eos> secret santa collects new, unwrapped toys for children 12 and under. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> secret santa collects new, unwrapped toys for children 12 and under. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> secret santa <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> former prime minister tony blair will co-host a financial forum with french president nicolas sarkozy to look for ``concrete solutions'' to the downturn. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> former prime minister tony blair will co-host a financial forum with french president nicolas sarkozy to look for ``concrete solutions'' to the downturn. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> tony blair will co-host a financial <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a chapel hill developer took the stand today in the john edwards campaign finance trial. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a chapel hill developer took the stand today in the john edwards campaign finance trial. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a chapel hill developer took the stand <del> in the john edwards <del> <del> trial. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> fairfax county may bring back red light cameras after scrapping a similar program eight years... <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> fairfax county may bring back red light cameras after scrapping a similar program eight years... <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> fairfax county may bring <del> red light <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> havana, cuba, may 19 the literacy campaign continues advancing in bolivia with the cuban method 'yo si puedo'. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> havana, cuba, may 19 the literacy campaign continues advancing in bolivia with the cuban method 'yo si puedo'. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> items from schilling company hit ri auction block the implosion of former boston red sox pitcher curt schilling's video game company left the state of rhode island with a $100 million mess -- and paul deblois with a clock. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> items from schilling company hit ri auction block the implosion of former boston red sox pitcher curt schilling's video game company left the state of rhode island with a $100 million mess -- and paul deblois with a clock. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> items from schilling company hit ri auction <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a man accused of facebooking to his friends during a swat standoff has officially been charged. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a man accused of facebooking to his friends during a swat standoff has officially been charged. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a man accused of facebooking <del> <del> <del> during a <del> standoff has <del> been charged. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> billboard is set to launch a country music ``mini-magazine'' in partnership with 'stache media, a marketing agency specialized in music. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> billboard is set to launch a country music ``mini-magazine'' in partnership with 'stache media, a marketing agency specialized in music. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> billboard is set to launch a country music <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> jenson button will have the first run in the new mclaren when pre-season testing starts next month, the formula one team said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> jenson button will have the first run in the new mclaren when pre-season testing starts next month, the formula one team said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> jenson button will have the first run in the new <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a fire destroyed a vacant two-story house along purchase line road in green township tuesday night. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a fire destroyed a vacant two-story house along purchase line road in green township tuesday night. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a fire destroyed a vacant <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> eva mendes says her dog would kill for her; should ryan gosling and rachel mcadams be worried? <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> eva mendes says her dog would kill for her; should ryan gosling and rachel mcadams be worried? <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> eva mendes says her dog would kill for <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> jane lynch will host the 63rd annual emmy awards. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> jane lynch will host the 63rd annual emmy awards. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> jane lynch will host the <del> <del> emmy awards. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> lucky oye!'', has done varying roles in his three-year film career, but he is most uncomfortable doing ``sensuous scenes''. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> lucky oye!'', has done varying roles in his three-year film career, but he is most uncomfortable doing ``sensuous scenes''. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> lucky <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> koivu will return to his normal line -- between wingers dany heatley and devin setoguchi. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> koivu will return to his normal line -- between wingers dany heatley and devin setoguchi. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> koivu will return to his normal <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> the faa proposed a $348,000 civil penalty against chautauqua airlines for allegedly operating some of its regional jets without performing inspections required by five different faa airworthiness directives. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> the faa proposed a $348,000 civil penalty against chautauqua airlines for allegedly operating some of its regional jets without performing inspections required by five different faa airworthiness directives. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> the faa proposed a <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> england will name a new cricket captain after michael vaughan decided to step down following his team's test series loss to south africa and paul collingwood announced he'd stepped down as one day skipper. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> england will name a new cricket captain after michael vaughan decided to step down following his team's test series loss to south africa and paul collingwood announced he'd stepped down as one day skipper. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> england will name a new <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> former saint john conservative mp elsie wayne suffered a stroke on friday and is now in the saint john regional hospital. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> former saint john conservative mp elsie wayne suffered a stroke on friday and is now in the saint john regional hospital. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> former saint john conservative mp elsie wayne suffered a <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> tim worner has been named as ceo of the seven network in a move that has been anticipated since the departure of commercial boss james warburton to lead ten. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> tim worner has been named as ceo of the seven network in a move that has been anticipated since the departure of commercial boss james warburton to lead ten. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> tim worner has been named as ceo of the seven <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> the pentagon announced yesterday that it had dropped conspiracy and terrorism charges against five guantanamo detainees, including a briton, but said it could reinstate them ``at a later time.'' <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> the pentagon announced yesterday that it had dropped conspiracy and terrorism charges against five guantanamo detainees, including a briton, but said it could reinstate them ``at a later time.'' <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> the pentagon <del> <del> <del> <del> had dropped conspiracy and <del> charges against five <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> musa said that what was important was for him, as the state bn chairman, to ensure that the bn win back the seat. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> musa said that what was important was for him, as the state bn chairman, to ensure that the bn win back the seat. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> the <del> bn <del> <del> <del> <del> <del> <del> win <del> the seat. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a 24-year-old tiverton, ri, man is charged with obstruction of justice in connection with the murder of a freetown man. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a 24-year-old tiverton, ri, man is charged with obstruction of justice in connection with the murder of a freetown man. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a <del> tiverton, ri, man is charged with obstruction of justice in connection with the murder of a freetown man. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+1.6030484437942505
