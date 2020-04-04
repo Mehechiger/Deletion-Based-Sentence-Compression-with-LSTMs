@@ -496,12 +496,21 @@ for epoch in range(N_EPOCHS):
               verbose=VERBOSE
               )
 
+    val_loss = evaluate(model,
+                        val_iterator,
+                        criterion,
+                        beam=BEAM,
+                        verbose=TRAIN_VERBOSE
+                        )
+
+    outputter(f'\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}',
+              verbose=VERBOSE
+              )
+
     """
-    if train_loss <= 0.01:
+    if val_loss <= 0.01:
         break
     """
-
-    #val_loss = evaluate(model, val_iterator, criterion, beam=BEAM, verbose=TRAIN_VERBOSE)
 
 
 test_loss = evaluate(model,
