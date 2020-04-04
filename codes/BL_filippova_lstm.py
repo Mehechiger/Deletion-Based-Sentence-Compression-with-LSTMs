@@ -148,10 +148,10 @@ give_label(test)
 """
 # for testing use only small amount of data
 train, _ = train.split(split_ratio=0.01)
-#val, _ = val.split(split_ratio=0.005)
-#test, _ = test.split(split_ratio=0.0005)
+val, _ = val.split(split_ratio=0.01)
+test, _ = test.split(split_ratio=0.01)
 #test, _ = train.split(split_ratio=0.1)
-val = test = train
+#val = test = train
 
 outputter("train: %s examples" % len(train.examples), verbose=VERBOSE)
 outputter("val: %s examples" % len(val.examples), verbose=VERBOSE)
@@ -245,7 +245,7 @@ class Seq2Seq(nn.Module):
         assert encoder.n_layers == decoder.n_layers, \
             "Encoder and decoder must have equal number of layers!"
 
-    def forward(self, src, trg, teacher_forcing_ratio=1, n=1):
+    def forward(self, src, trg, teacher_forcing_ratio, n):
         batch_size = trg.shape[1]
         max_len = trg.shape[0]
         trg_vocab_size = self.decoder.output_dim
@@ -385,7 +385,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         trg = batch.compressed
 
         try:
-            output = model(src, trg)
+            output = model(src, trg, 1, 1)
         except RuntimeError as exception:
             if "out of memory" in str(exception):
                 print("WARNING: out of memory")
@@ -422,7 +422,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
     return epoch_loss / len(iterator)
 
 
-def evaluate(model, iterator, criterion, verbose=False):
+def evaluate(model, iterator, criterion, beam=3, verbose=False):
 
     model.eval()
     epoch_loss = 0
@@ -433,7 +433,7 @@ def evaluate(model, iterator, criterion, verbose=False):
             trg = batch.compressed
 
             try:
-                output = model(src, trg, 0)
+                output = model(src, trg, 0, beam)
             except RuntimeError as exception:
                 if "out of memory" in str(exception):
                     print("WARNING: out of memory")
@@ -501,10 +501,15 @@ for epoch in range(N_EPOCHS):
         break
     """
 
-    #val_loss = evaluate(model, val_iterator, criterion, verbose=2)
+    #val_loss = evaluate(model, val_iterator, criterion, beam=BEAM, verbose=TRAIN_VERBOSE)
 
 
-test_loss = evaluate(model, test_iterator, criterion, verbose=TEST_VERBOSE)
+test_loss = evaluate(model,
+                     test_iterator,
+                     criterion,
+                     beam=BEAM,
+                     verbose=TEST_VERBOSE
+                     )
 outputter(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}',
           verbose=VERBOSE
           )
