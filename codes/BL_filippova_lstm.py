@@ -46,12 +46,12 @@ outputter(None, verbose=4)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #DEVICE = torch.device("cpu")
 outputter("using device: %s\n" % DEVICE, verbose=VERBOSE)
-#SpaCy_EN = spacy.load("en_core_web_sm")
+SpaCy_EN = spacy.load("en_core_web_sm")
 
 
 def tokenizer(text):
-    # return [tok.text for tok in SpaCy_EN.tokenizer(text)]
-    return text.split()
+    return [tok.text for tok in SpaCy_EN.tokenizer(text)]
+    # return text.split()
 
 
 def give_label(tabular_dataset):  # naive version
@@ -147,9 +147,9 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
-val, _ = val.split(split_ratio=0.01)
-test, _ = test.split(split_ratio=0.01)
+#train, _ = train.split(split_ratio=0.01)
+#val, _ = val.split(split_ratio=0.01)
+#test, _ = test.split(split_ratio=0.01)
 #test, _ = train.split(split_ratio=0.1)
 #val = test = train
 
@@ -211,7 +211,6 @@ class Decoder(nn.Module):
         self.device = device
 
         self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
-        #self.embedding_input = nn.Embedding(output_dim, emb_input_dim)
         self.embedding_input = lambda l: torch.eye(
             emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
         self.rnn = nn.LSTM(emb_src_dim+emb_input_dim,
@@ -429,7 +428,7 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 2000
+N_EPOCHS = 10
 BEAM = 3
 
 best_valid_loss = float('inf')
