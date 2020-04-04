@@ -1,0 +1,328 @@
+using device: cpu
+train: 180000 examplesval: 180000 examplestest: 180000 examplesusing device: cpu
+
+train: 180000 examples
+val: 180000 examples
+test: 180000 examples
+original:   <eos> russia plans to launch four spacecraft before february next year, including two manned mission to the international space station, xinhua reported tuesday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> russia plans to launch four spacecraft before february next year, including two manned mission to the international space station, xinhua reported tuesday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> russia plans to launch four <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a major street here is being renamed in honor of martin luther king jr. salem road, which is home to willingboro's municipal building, will mark the change with a dedication ceremony on sunday afternoon. <eos> <pad> <pad> <pad>
+compressed: <eos> a major street here is being renamed in honor of martin luther king jr. salem road, which is home to willingboro's municipal building, will mark the change with a dedication ceremony on sunday afternoon. <eos> <pad> <pad> <pad>
+gold:       <eos> a <del> street <del> is being renamed in honor of martin luther king jr. salem <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad>
+
+
+original:   <eos> it is being rumored that apple has acquired speech technology company nuance, after steve wozniak, co-founder of apple, made this declaration in a video interview. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> it is being rumored that apple has acquired speech technology company nuance, after steve wozniak, co-founder of apple, made this declaration in a video interview. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> apple has acquired <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> gwyneth paltrow is set to return to ``glee'' and reprise her role as free-spirited substitute teacher holly holiday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> gwyneth paltrow is set to return to ``glee'' and reprise her role as free-spirited substitute teacher holly holiday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> gwyneth paltrow is set to return to <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> president mahmoud ahmadinejad said saturday that iran now possesses 6,000 centrifuges, machines used to enrich uranium, the semi-official fars news agency reported. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> president mahmoud ahmadinejad said saturday that iran now possesses 6,000 centrifuges, machines used to enrich uranium, the semi-official fars news agency reported. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> iran <del> possesses 6,000 <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> five doctors have been reported to an garda síochána for practising without registration over the past year and a half, but there have been no prosecutions instituted to date in any of the cases. <eos> <pad> <pad> <pad>
+compressed: <eos> five doctors have been reported to an garda síochána for practising without registration over the past year and a half, but there have been no prosecutions instituted to date in any of the cases. <eos> <pad> <pad> <pad>
+gold:       <eos> five doctors have been reported to an garda <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad>
+
+
+original:   <eos> oil prices fell below $76 a barrel today, pressured by a stronger dollar and weaker equities, which outweighed reaction from better-than-expected us jobs data. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> oil prices fell below $76 a barrel today, pressured by a stronger dollar and weaker equities, which outweighed reaction from better-than-expected us jobs data. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> oil prices fell below <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> japanese automaker honda motor doubled its operating profit in the year to march thanks to demand in emerging markets and the cheap yen, a report said on friday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> japanese automaker honda motor doubled its operating profit in the year to march thanks to demand in emerging markets and the cheap yen, a report said on friday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> honda motor doubled its operating <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a leading diabetes charity is urging locals to keep to their new year's resolutions to ward off increased threats of developing the illness in later life. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a leading diabetes charity is urging locals to keep to their new year's resolutions to ward off increased threats of developing the illness in later life. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a <del> diabetes charity is urging locals to keep to their new year's <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> maharashtra government has banned use of mobile phones in public and private schools upto class 10 across the state. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> maharashtra government has banned use of mobile phones in public and private schools upto class 10 across the state. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> maharashtra government has banned use of mobile phones in <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> with less than five months to go before its official launch, the hub has unveiled its inaugural programming lineup, taking the wraps off a mix of six original series and a dozen acquired programs. <eos> <pad> <pad> <pad>
+compressed: <eos> with less than five months to go before its official launch, the hub has unveiled its inaugural programming lineup, taking the wraps off a mix of six original series and a dozen acquired programs. <eos> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> the hub has unveiled its <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad>
+
+
+original:   <eos> atlanta two high-profile former georgia tech health professors who now work for the university of minnesota were charged wednesday with receiving paychecks simultaneously from both schools. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> atlanta two high-profile former georgia tech health professors who now work for the university of minnesota were charged wednesday with receiving paychecks simultaneously from both schools. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> atlanta two <del> former georgia tech <del> professors <del> <del> <del> <del> <del> <del> <del> <del> were <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> europe needs to open up further to chinese investment which would substantially help solve the eurozone debt crisis, a senior researcher from china's top economic planning authorities said here tuesday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> europe needs to open up further to chinese investment which would substantially help solve the eurozone debt crisis, a senior researcher from china's top economic planning authorities said here tuesday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> europe needs to open up further to chinese investment which would <del> help solve the <del> debt <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> earlier this year, we reported that the bamboozle festival would not be returning to asbury park in new jersey in 2013. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> earlier this year, we reported that the bamboozle festival would not be returning to asbury park in new jersey in 2013. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> the bamboozle festival would not be returning <del> <del> <del> in <del> <del> <del> 2013. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> hearing aid battery manufacturer rayovac has invested an extra £1m in the north east as it steps up production of its new, mercury-free range. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> hearing aid battery manufacturer rayovac has invested an extra £1m in the north east as it steps up production of its new, mercury-free range. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> rayovac has invested an extra <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> apple has won sanctions against samsung electronics for its failure to produce source code in a patent-infringement case in federal court in san jose, california. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> apple has won sanctions against samsung electronics for its failure to produce source code in a patent-infringement case in federal court in san jose, california. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> apple has won sanctions against samsung <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> the bbc has reported that over 1200 schools will be fully or partially closed by the national uk teachers strike on thursday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> the bbc has reported that over 1200 schools will be fully or partially closed by the national uk teachers strike on thursday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> over 1200 schools will be <del> <del> <del> closed by the <del> uk teachers <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> winner of the 2006 tour de france oscar pereiro of spain, seen here in 2009, announced tuesday that he will retire after the tour of spain in september. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> winner of the 2006 tour de france oscar pereiro of spain, seen here in 2009, announced tuesday that he will retire after the tour of spain in september. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> the 2006 <del> <del> <del> oscar pereiro <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> will retire after the tour of <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> two pension funds have filed a $6.5 billion class-action lawsuit against timber company sino-forest corp, along with its head executives and auditor ernst & young. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> two pension funds have filed a $6.5 billion class-action lawsuit against timber company sino-forest corp, along with its head executives and auditor ernst & young. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> two pension funds have filed a <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> vietnamese government on tuesday released a white paper on national defense, providing updated information on the country's military forces and illustrating vietnam's national defense policy. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> vietnamese government on tuesday released a white paper on national defense, providing updated information <unk> <unk> country's military forces and illustrating vietnam's national defense policy. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> vietnamese government <del> <del> released a white paper on national <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> vestas wind systems announced that it intent to build the world's largest wind turbine tower factory in colorado. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> vestas wind systems announced that it intent to build the world's largest wind turbine tower factory in colorado. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> vestas wind systems <del> <del> <del> <del> to build the world's <del> wind turbine tower <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a hamas spokesman on thursday ruled out renewing the truce in and around the gaza strip and insisted the palestinan islamist movement had a duty to respond to any attack by israel. <eos> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a hamas spokesman on thursday ruled out renewing the truce in and around the gaza strip and insisted the palestinan islamist movement had a duty to respond to any attack by israel. <eos> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a hamas spokesman <del> <del> ruled out renewing the truce <del> <del> <del> the gaza <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> us rappers black eyed peas reigned supreme in a singles chart which saw no new entries in the top 10. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> us rappers black eyed peas reigned supreme in a singles chart which saw no new entries in the top 10. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> black eyed peas reigned <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> alstare suzuki's michel fabrizio fought back to seventh place in race two at donington park after being forced to dnf race one. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> alstare suzuki's michel fabrizio fought back to seventh place in race two at donington park after being forced to dnf race one. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> alstare suzuki's michel fabrizio fought back to seventh <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> toyota said monday its china sales fell 2.4% in june from a year earlier to around 59,500 vehicles. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> toyota said monday its china sales fell 2.4% in june from a year earlier to around 59,500 vehicles. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> toyota said <del> its china sales fell <del> in <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> jones' bombings comments spark backlash updated: 14:49, wednesday april 17, 2013 broadcaster alan jones has sparked an online backlash after suggesting radical students planted the boston bombs and australia should take more care letting in foreign students. <eos>
+compressed: <eos> jones' bombings comments spark backlash updated: 14:49, wednesday april 17, 2013 broadcaster alan jones has sparked an online backlash after suggesting radical students planted the boston bombs and australia should take more care letting in foreign students. <eos>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> jones <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos>
+
+
+original:   <eos> asian stocks swung between gains and losses as advances among consumer-related shares overshadowed declines by technology and electronics companies. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> asian stocks swung between gains and losses as advances among consumer-related shares overshadowed declines by technology and electronics companies. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> asian stocks swung between gains and <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> social gaming firm zynga could be worth as much as usd1bn, despite ongoing controversy about the way it makes money. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> social gaming firm zynga could be worth as much as usd1bn, despite ongoing controversy about the way it makes money. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> social gaming firm zynga could be worth <del> much as <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> ben ali, the founder of famed dc landmark ben's chili bowl, has died at the age of 82. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> ben ali, the founder of famed dc landmark ben's chili bowl, has died at the age of 82. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> ben ali, the founder of <del> <del> <del> ben's chili bowl, has <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> we heard last month that asus would be releasing a bootloader unlock tool for their transformer prime tablet, and it looks like the tool has just been released and is now available to download. <eos> <pad> <pad> <pad>
+compressed: <eos> we heard last month that asus would be releasing a bootloader unlock tool for their transformer prime tablet, and it looks like the tool has just been released and is now available to download. <eos> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> asus would be releasing a bootloader unlock tool for their transformer prime <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad>
+
+
+original:   <eos> boxee, the online video platform that won the inaugural cea i-stage contest last year, will soon unveil a new set-top box, the company's ceo announced on his blog. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> boxee, the online video platform that won the inaugural cea i-stage contest last year, will soon unveil a new set-top box, the company's ceo announced on his blog. <eos> <pad> <pad> <pad> <pad> <pad> <unk> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a film investor is apparently threatening to sue will smith and jada pinkett-smith over a failed movie project. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a film investor is apparently threatening to sue will smith and jada pinkett-smith over a failed movie project. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a <del> investor is <del> threatening to sue will <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+1.5990444421768188
+original:   <eos> medeanalytics, a leading provider of healthcare performance management solutions, announced in a press release that it has received a patent pending for automated billing and charge capture for medical bills. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> medeanalytics, a leading provider of healthcare performance management solutions, announced in a press release that it has received a patent pending for automated billing and charge capture for medical bills. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a suspicious package in the 200 block of chilverton prompted street closures and evacuations in the mainly residential area, one block north of branciforte middle school. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a suspicious package in the 200 block of chilverton prompted street closures and evacuations in the mainly residential area, one block north of branciforte middle school. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a suspicious package <del> <del> <del> <del> <del> <del> prompted <del> closures and <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> average salary increases in the gulf dropped sharply to 6.2 percent from an average of 11.4 percent last year. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> average salary increases in the gulf dropped sharply to 6.2 percent from an average of 11.4 percent last year. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> salary increases in the gulf dropped <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> ltte terrorists who have positioned their mortars in previously declared ``safe zone'' fired mortars towards innocent civilians in ``new safe zone'' this morning. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> ltte terrorists who have positioned their mortars in previously declared ``safe zone'' fired mortars towards innocent civilians in ``new safe zone'' this morning. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> terrorists <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> fired mortars towards <del> civilians in <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> prisoners will be forced to give dna samples as part of plans to establish a national crime database, according to a report this morning. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> prisoners will be forced to give dna samples as part of plans to establish a national crime database, according to a report this morning. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> prisoners will be forced to give dna samples as part of plans to establish a national crime database, according to a <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> mahindra firstchoice, a multi- brand pre-owned car sales major from the mahindra and mahindra group, has set a target to sell one lakh used cars by 2014, a top company official said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> mahindra firstchoice, a multi- brand pre-owned car sales major from the mahindra and mahindra group, has set a target to sell one lakh used cars by 2014, a top company official said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> mahindra <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> wladimir klitschko defended the wba, ibf and wbo heavyweight titles with ease by outclassing francesco pianeta in mannheim, germany on saturday night, stopping the italian in the sixth round, the telegraph reports. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> wladimir klitschko defended the wba, ibf and wbo heavyweight titles with ease by outclassing francesco pianeta in mannheim, germany on saturday night, stopping the italian in the sixth round, the telegraph reports. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> wladimir klitschko defended <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> delta airlines has continued its expansion into south america with the launch of services to georgetown, guyana. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> delta airlines has continued its expansion into south america with the launch of services to georgetown, guyana. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> delta airlines has continued its expansion into south <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> delta air lines announced today that it is launching a new non-stop service from new york's john f. kennedy international airport to the grand cayman, cayman islands, on 12 june. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> delta air lines announced today that it is launching a new non-stop service from new york's john f. kennedy international airport to the grand cayman, <unk> islands, on 12 june. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> delta air lines <del> <del> <del> <del> is launching a new non-stop service <del> <del> <del> <del> <del> <del> <del> <del> to the grand cayman, cayman <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> the mariners have signed no. 27 overall pick nick franklin for $1.28 million. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> the mariners have signed no. 27 overall pick nick franklin for $1.28 million. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> the mariners have signed <del> <del> <del> <del> nick franklin for <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> at least 48 chemical and defence companies have been attacked by a lone chinese hacker, security firm symantec corp has claimed. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> at least 48 chemical and defence companies have been attacked by a lone chinese hacker, security firm symantec corp has claimed. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> at least 48 chemical and defence companies have been attacked by a <del> chinese <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> ap retail writer new york bed bath & beyond's shares tumbled a day after the home goods seller forecast weaker earnings than wall street expected as concern spread about the company's health in view of the wobbling economy. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> ap retail writer new york bed bath & beyond's shares tumbled a day after the home goods seller forecast weaker earnings than wall street expected as concern spread about the company's health in view of the wobbling economy. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> bed bath & <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a 50-year-old bartender was arrested on wednesday for allegedly murdering his wife over a domestic feud, police said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a 50-year-old bartender was arrested on wednesday for allegedly murdering his wife over a domestic feud, police said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a <del> bartender was arrested <del> <del> for <del> murdering his <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a key georgia council has changed its eyewitness identification rules in response to the exonerations of seven georgia inmates by dna evidence over the past decade.the georgia peace officers standards and training council has voted to require a range of police officers to get intense instruction on new eyewitness identification standards. <eos>
+compressed: <eos> a key georgia council has changed its eyewitness identification rules in response to the exonerations of seven georgia inmates by dna evidence over the past decade.the georgia peace officers standards and training council has voted to require a range of police officers to get intense instruction on new eyewitness identification standards. <eos>
+gold:       <eos> a <del> georgia council has changed its eyewitness <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos>
+
+
+original:   <eos> a crane collapsed tuesday at the construction site of a highrise condominium, killing two workers, injuring four and smashing into a home that the contractor had been using as an office, police said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a crane collapsed tuesday at the construction site of a highrise condominium, killing two workers, injuring four and smashing into a home that the contractor had been using as an office, police said. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a crane <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> robert pattinson gives awkwardly charming interview on gma taking constant sips of coffee, the notoriously private actor was visibly nervous and anxious, although he handled the interview with his usual quirky charm. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> robert pattinson gives awkwardly charming interview on gma taking constant sips of coffee, the notoriously private actor was visibly nervous and anxious, although he handled the interview with his usual quirky charm. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> robert pattinson gives awkwardly charming interview on gma <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> a trial date was set for a former izard county teacher who is charged with 28 counts of sex-related charges involving students. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> a trial date was set for a former izard county teacher who is charged with 28 counts of sex-related charges involving students. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> a trial date was set for a former <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> goldman sachs upgraded pinnacle west capital from neutral to buy with a $45 price target. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> goldman sachs upgraded pinnacle west capital from neutral to buy with a $45 price target. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> goldman sachs upgraded pinnacle west capital <del> <del> to <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> qliktech, named the world's fastest-growing business intelligence software vendor by idc, recently announced the immediate availability of qlikview support for hp neoview, an enterprise data warehouse platform. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> qliktech, named the world's fastest-growing business intelligence software vendor by idc, recently announced the immediate availability of qlikview support for hp neoview, an enterprise data warehouse platform. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> cigarette producer pt gudang garam said wednesday its annual profit rose by 18.8 percent to rp 4.1 trillion last year from rp 3.45 trillion in 2009. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> cigarette producer pt gudang garam said wednesday its annual profit rose by 18.8 percent to rp 4.1 trillion last year from rp 3.45 trillion in 2009. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> pt gudang garam said <del> its <del> profit rose by 18.8 percent <del> <del> <del> <del> last <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> canada's border guards could soon get new powers to strip-search employees in airport and ports across canada in a bid to crack down on the smuggling of illegal drugs, such as marijuana, ecstasy and cocaine. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> canada's border guards could soon get new powers to strip-search employees in airport and ports across canada in a bid to crack down on the smuggling of illegal drugs, such as marijuana, ecstasy and cocaine. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> canada's border guards could <del> get new <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> mr. mervin upali fernando a sri lankan entrepreneur who resides in maldives donated usd 3000 for the ``api wenuwen api'' project today. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> mr. mervin upali fernando a sri lankan entrepreneur who resides in maldives donated usd 3000 for the ``api wenuwen api'' project today. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> mervin upali fernando a sri lankan entrepreneur who resides in maldives donated usd 3000 for the <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> delhi has earned a special recognition of having the highest monthly per capita expenditure and the highest monthly per capita income in the country. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> delhi has earned a special recognition of having the highest monthly per capita expenditure and the highest monthly per capita income in the country. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> delhi has earned a <del> recognition of having the <del> monthly <del> <del> expenditure and the highest monthly per capita <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> former jamaat-e-islami chief and veteran politician qazi hussain ahmed passed away in islamabad. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> former jamaat-e-islami chief and veteran politician qazi hussain ahmed passed away in islamabad. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> jamaat-e-islami chief <del> <del> <del> qazi hussain ahmed passed <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> san diego ― the mother of a california teen who was raped and murdered in february says she felt a ``wave of disgust'' when she confronted her daughter's killer at his sentencing last week. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> san diego ― the mother of a california teen who was raped and murdered in february says she felt a ``wave of disgust'' when she confronted her daughter's killer at his sentencing last week. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> ― <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> says <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> sandra bullock has made box office history by becoming the first female star to see her movie leap past the $200m mark. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> sandra bullock has made box office history by becoming the first female star to see her movie leap past the $200m mark. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> sandra bullock has made <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> late chief rabbi of paris, rabbi david messas was laid to rest on har hamenuchot on monday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> late chief rabbi of paris, rabbi david messas was laid to rest on har hamenuchot on monday. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> newcastle have signed argentina defender fabricio coloccini from deportivo la coruna for an undisclosed fee. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> newcastle have signed argentina defender fabricio coloccini from deportivo la coruna for an undisclosed fee. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> newcastle have signed argentina defender fabricio <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> brazilian legend carlos alberto parreira believes that neymar has the calibre to lead the selecao to olympic glory in london this summer. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> brazilian legend carlos alberto parreira believes that neymar has the calibre to lead the selecao to olympic glory in london this summer. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> carlos alberto parreira believes <del> neymar has the calibre to lead the selecao to olympic <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> union home minister sushilkumar shinde today said vital clues have been obtained on the recent 'fidayeen' attack in srinagar in which five crpf jawans were killed. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> union home minister sushilkumar shinde today said vital clues have been obtained on the recent 'fidayeen' attack in srinagar in which five crpf jawans were killed. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> <del> <del> <del> <del> <del> <del> <del> vital clues have been obtained on the <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> emraan hashmi, who essayed the role of a don loosely inspired by dawood ebrahim in `once upon a time in mumbaai`, was offered to play alleged serial killer charles sobhraj but the actor turned it down. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> emraan hashmi, who essayed the role of a don loosely inspired by dawood ebrahim in `once upon a time in mumbaai`, was offered to play alleged serial killer charles sobhraj but the actor turned it down. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> emraan <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+original:   <eos> credit card purchases rose by 8.2% in fixed prices in 2010, after rising 4.2% in 2009 and 6% in 2008, the central bureau of statistics reported today. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+compressed: <eos> credit card purchases rose by 8.2% in fixed prices in 2010, after rising 4.2% in 2009 and 6% in 2008, the central bureau of statistics reported today. <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+gold:       <eos> credit card purchases rose by 8.2% in <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <del> <eos> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
+
+
+1.6031579971313477

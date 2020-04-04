@@ -13,9 +13,37 @@ from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
 
 
+def outputter(*content, verbose=False):
+    if verbose:
+        try:
+            content = "".join(content)
+        except TypeError:
+            content = "".join(map(str, content))
+        content += "\n"
+
+        if verbose == 1:
+            print(content)
+        elif verbose == 2:
+            with open("output.log", "a") as f:
+                f.write(content)
+        elif verbose == 3:
+            print(content)
+            with open("output.log", "a") as f:
+                f.write(content)
+        elif verbose == 4 and content == None:
+            with open("output.log", "w") as f:
+                f.write()
+
+
+VERBOSE = 3
+
+# clear output.log
+outputter(None, verbose=4)
+
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #DEVICE = torch.device("cpu")
-print("using device: %s\n" % DEVICE)
+outputter("using device: %s\n" % DEVICE, verbose=VERBOSE)
 #SpaCy_EN = spacy.load("en_core_web_sm")
 
 
@@ -74,23 +102,11 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
         except IndexError:
             orig = compr = compr_trg = ["INDEX_ERROR", ]
         res.append((orig, compr, compr_trg))
-        if out == 1:
-            print("original:   ", " ".join(orig))
-            print("compressed: ", " ".join(compr))
-            print("gold:       ", " ".join(compr_trg))
-            print()
-        elif out == 2:
-            with open("output.log", "a") as f:
-                f.write("original:   ")
-                f.write(" ".join(orig))
-                f.write("\n")
-                f.write("compressed: ")
-                f.write(" ".join(compr))
-                f.write("\n")
-                f.write("gold:       ")
-                f.write(" ".join(compr_trg))
-                f.write("\n")
-                f.write("\n")
+        outputter("original:   ", " ".join(orig), "\n",
+                  "compressed: ", " ".join(compr), "\n",
+                  "gold:       ", " ".join(compr_trg), "\n\n",
+                  verbose=out
+                  )
     return res
 
 
@@ -135,9 +151,9 @@ give_label(test)
 #test, _ = train.split(split_ratio=0.1)
 val = test = train
 
-print("train: %s examples" % len(train.examples))
-print("val: %s examples" % len(val.examples))
-print("test: %s examples" % len(test.examples))
+outputter("train: %s examples" % len(train.examples), verbose=VERBOSE)
+outputter("val: %s examples" % len(val.examples), verbose=VERBOSE)
+outputter("test: %s examples" % len(test.examples), verbose=VERBOSE)
 """
 """
 
@@ -390,7 +406,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         trg = trg.view(-1)
 
         loss = criterion(output, trg)
-        print(loss.item())
+        outputter(loss.item(), verbose=verbose)
 
         loss.backward()
 
@@ -463,7 +479,7 @@ for epoch in range(N_EPOCHS):
                        train_iterator,
                        optimizer,
                        criterion,
-                       verbose=2,
+                       verbose=VERBOSE,
                        accumulation_steps=ACCUMULATION_STEPS
                        )
 
@@ -471,9 +487,12 @@ for epoch in range(N_EPOCHS):
 
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
-    print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
-    print(
-        f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+    outputter(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s',
+              verbose=VERBOSE
+              )
+    outputter(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}',
+              verbose=VERBOSE
+              )
 
     """
     if train_loss <= 0.01:
@@ -483,5 +502,7 @@ for epoch in range(N_EPOCHS):
     #val_loss = evaluate(model, val_iterator, criterion, verbose=2)
 
 
-test_loss = evaluate(model, test_iterator, criterion, verbose=2)
-print(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}')
+test_loss = evaluate(model, test_iterator, criterion, verbose=VERBOSE)
+outputter(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}',
+          verbose=VERBOSE
+          )
