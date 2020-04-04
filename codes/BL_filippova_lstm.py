@@ -301,7 +301,6 @@ class Seq2Seq(nn.Module):
             outputs[i] = labels[i]
         return outputs
         """
-        """
         output, hidden, cell = self.decoder(src_, input, hidden, cell)
         #outputs[0] = output
         beam = [(hidden, cell, input, 1.0, [output, ]), ]
@@ -331,6 +330,7 @@ class Seq2Seq(nn.Module):
                                           ))
                 beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
         return outputs
+        """
 
 
 INPUT_DIM = len(ORIG.vocab)
