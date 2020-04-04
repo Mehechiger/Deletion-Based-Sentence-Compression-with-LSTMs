@@ -256,17 +256,6 @@ class Seq2Seq(nn.Module):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input = trg[0, :]
         src_ = src[0, :]
-        """
-        for t in range(max_len):
-            output, hidden, cell = self.decoder(src_, input, hidden, cell)
-            outputs[t] = output
-            teacher_force = random.random() < teacher_forcing_ratio
-            top1 = output.max(1)[1]
-            if t+1 < max_len:
-                input = trg[t+1] if teacher_force else top1
-                src_ = src[t+1]
-        return outputs
-        """
         output, hidden, cell = self.decoder(src_, input, hidden, cell)
         prob = torch.zeros(batch_size, 1).to(self.device)
         beam = [(hidden, cell, input, prob, [output, ]), ]
@@ -300,37 +289,6 @@ class Seq2Seq(nn.Module):
         for i in range(len(labels)):
             outputs[i] = labels[i]
         return outputs
-        """
-        output, hidden, cell = self.decoder(src_, input, hidden, cell)
-        #outputs[0] = output
-        beam = [(hidden, cell, input, 1.0, [output, ]), ]
-        for t in range(1, max_len):
-            src_ = src[t]
-            if random.random() < teacher_forcing_ratio:
-                input = trg[t]
-                output, hidden, cell = self.decoder(src_, input, hidden, cell)
-                #outputs[t] = output
-            else:
-                next_beam = []
-                for hidden, cell, input, prob, labels in beam:
-                    output, hidden, cell = self.decoder(src_,
-                                                        input,
-                                                        hidden,
-                                                        cell
-                                                        )
-                    #outputs[t] = output
-                    output_tops = torch.topk(output, n, 1)
-                    for i in range(output_tops[1].shape[1]):
-                        # if LogSoftmax then prob+ else *
-                        next_beam.append((hidden,
-                                          cell,
-                                          output_tops[1][:, i],
-                                          prob+output_tops[0][:, i],
-                                          labels+[output, ]
-                                          ))
-                beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
-        return outputs
-        """
 
 
 INPUT_DIM = len(ORIG.vocab)
@@ -408,7 +366,9 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         trg = trg.view(-1)
 
         loss = criterion(output, trg)
-        outputter(loss.item(), verbose=3 if verbose == 2 else verbose)
+        outputter("batch %s, loss: " % i, loss.item(),
+                  verbose=3 if verbose == 2 else verbose
+                  )
 
         loss.backward()
 
@@ -470,7 +430,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-BEAM = 3
+BEAM = 1
 
 best_valid_loss = float('inf')
 
