@@ -429,8 +429,8 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 20
-BEAM = 1
+N_EPOCHS = 2000
+BEAM = 3
 
 best_valid_loss = float('inf')
 
