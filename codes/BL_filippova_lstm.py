@@ -470,6 +470,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
+BEAM = 3
 
 best_valid_loss = float('inf')
 
