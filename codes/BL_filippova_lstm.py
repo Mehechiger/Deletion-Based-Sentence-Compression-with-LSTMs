@@ -41,7 +41,7 @@ def give_label(tabular_dataset):  # naive version
         tabular_dataset.examples[i].compressed = labels
 
 
-def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, print_out=False):
+def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     # temporary fix of the list index out of range
     # pb caused by tokenization
     res = []
@@ -74,11 +74,23 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, print_out=Fal
         except IndexError:
             orig = compr = compr_trg = ["INDEX_ERROR", ]
         res.append((orig, compr, compr_trg))
-        if print_out:
+        if out == 1:
             print("original:   ", " ".join(orig))
             print("compressed: ", " ".join(compr))
             print("gold:       ", " ".join(compr_trg))
             print()
+        elif out == 2:
+            with open("output.log", "a") as f:
+                f.write("original:   ")
+                f.write(" ".join(orig))
+                f.write("\n")
+                f.write("compressed: ")
+                f.write(" ".join(compr))
+                f.write("\n")
+                f.write("gold:       ")
+                f.write(" ".join(compr_trg))
+                f.write("\n")
+                f.write("\n")
     return res
 
 
@@ -371,7 +383,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
                 output,
                 ORIG.vocab.itos,
                 COMPR.vocab.itos,
-                print_out=True
+                out=verbose
             )
 
         output = output.view(-1, output.shape[-1])
@@ -419,7 +431,7 @@ def evaluate(model, iterator, criterion, verbose=False):
                     output,
                     ORIG.vocab.itos,
                     COMPR.vocab.itos,
-                    print_out=True
+                    out=verbose
                 )
 
             output = output.view(-1, output.shape[-1])
@@ -451,7 +463,7 @@ for epoch in range(N_EPOCHS):
                        train_iterator,
                        optimizer,
                        criterion,
-                       verbose=True,
+                       verbose=2,
                        accumulation_steps=ACCUMULATION_STEPS
                        )
 
@@ -468,8 +480,8 @@ for epoch in range(N_EPOCHS):
         break
     """
 
-    #val_loss = evaluate(model, val_iterator, criterion, verbose=True)
+    #val_loss = evaluate(model, val_iterator, criterion, verbose=2)
 
 
-test_loss = evaluate(model, test_iterator, criterion, verbose=True)
+test_loss = evaluate(model, test_iterator, criterion, verbose=2)
 print(f'\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}')
