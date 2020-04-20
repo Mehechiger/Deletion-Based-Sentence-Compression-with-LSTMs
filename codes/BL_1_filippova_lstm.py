@@ -122,7 +122,8 @@ COMPR = Field(
     lower=True,
     tokenize=tokenizer,
     init_token='<eos>',
-    eos_token='<eos>'
+    eos_token='<eos>',
+    unk_token=None
 )
 
 path_data = "../Google_dataset_news/"
