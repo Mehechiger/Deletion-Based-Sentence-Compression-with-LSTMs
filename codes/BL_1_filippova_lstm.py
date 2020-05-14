@@ -224,6 +224,8 @@ class Decoder(nn.Module):
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, input, hidden, cell):
+        print(input.shape)
+        exit()
         input = input.unsqueeze(0)
         src = src.unsqueeze(0)
         embedded = self.embedding_src(src)
