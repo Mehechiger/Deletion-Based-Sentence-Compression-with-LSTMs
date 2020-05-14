@@ -8,5 +8,5 @@ codes/.vector_cache/glove.840B.300d.txt
 codes/.vector_cache/glove.840B.300d.txt.pt
 codes/.vector_cache/glove.840B.300d.zip
 codes/output.log
-artls
-rapports
+artls/
+rapports/
