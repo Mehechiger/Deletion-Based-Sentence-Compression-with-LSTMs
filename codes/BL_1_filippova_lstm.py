@@ -148,9 +148,9 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
-val, _ = val.split(split_ratio=0.01)
-test, _ = test.split(split_ratio=0.01)
+train, _ = train.split(split_ratio=0.001)
+val, _ = val.split(split_ratio=0.001)
+test, _ = test.split(split_ratio=0.001)
 #test, _ = train.split(split_ratio=0.1)
 #val = test = train
 
@@ -175,9 +175,17 @@ COMPR.build_vocab(train, min_freq=1)
 BATCH_SIZE = 32
 ACCUMULATION_STEPS = 8
 
-train_iterator, val_iterator, test_iterator = BucketIterator.splits(
-    (train, val, test),
+train_iterator, = BucketIterator.splits(
+    (train,),
     batch_size=BATCH_SIZE,
+    sort=False,
+    device=DEVICE
+)
+
+# batch size = 1 for val/test
+val_iterator, test_iterator = BucketIterator.splits(
+    (val, test),
+    batch_size=1,
     sort=False,
     device=DEVICE
 )
@@ -224,8 +232,6 @@ class Decoder(nn.Module):
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, input, hidden, cell):
-        print(input.shape)
-        exit()
         input = input.unsqueeze(0)
         src = src.unsqueeze(0)
         embedded = self.embedding_src(src)
