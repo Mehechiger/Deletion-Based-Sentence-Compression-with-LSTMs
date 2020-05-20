@@ -4,7 +4,7 @@
 
 import os
 import time
-import random
+#import random
 import math
 import torch
 import torch.nn as nn
@@ -148,9 +148,9 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.001)
-val, _ = val.split(split_ratio=0.001)
-test, _ = test.split(split_ratio=0.001)
+train, _ = train.split(split_ratio=0.01)
+val, _ = val.split(split_ratio=0.01)
+test, _ = test.split(split_ratio=0.01)
 #test, _ = train.split(split_ratio=0.1)
 #val = test = train
 
@@ -254,6 +254,7 @@ class Seq2Seq(nn.Module):
         assert encoder.n_layers == decoder.n_layers, \
             "Encoder and decoder must have equal number of layers!"
 
+    """
     def forward(self, src, trg, teacher_forcing_ratio, n):
         batch_size = trg.shape[1]
         max_len = trg.shape[0]
@@ -297,6 +298,58 @@ class Seq2Seq(nn.Module):
         labels = sorted(beam, key=lambda x: x[3].mean())[0][4]
         for i in range(len(labels)):
             outputs[i] = labels[i]
+        return outputs
+    """
+    def forward(self, src, trg, n):
+        batch_size = trg.shape[1]
+        max_len = trg.shape[0]
+        trg_vocab_size = self.decoder.output_dim
+        outputs = torch.zeros(max_len,
+                              batch_size,
+                              trg_vocab_size
+                              ).to(self.device)
+        hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
+        input = trg[0, :]
+        src_ = src[0, :]
+        if not n:
+            for t in range(max_len):
+                output, hidden, cell = self.decoder(src_, input, hidden, cell)
+                outputs[t] = output
+                if t + 1 < max_len:
+                    input = trg[t + 1]
+                    src_ = src[t + 1]
+        else:
+            output, hidden, cell = self.decoder(src_, input, hidden, cell)
+            prob = torch.zeros(batch_size, 1).to(self.device)
+            beam = [(hidden, cell, input, prob, [output, ]), ]
+            for t in range(1, max_len):
+                src_ = src[t]
+                next_beam = []
+                for hidden, cell, input, prob, labels in beam:
+                    output, hidden, cell = self.decoder(src_, input, hidden, cell)
+                    if not n:
+                        input = trg[t]
+                        # if LogSoftmax then prob+0 else *1
+                        next_beam.append((hidden,
+                                          cell,
+                                          input,
+                                          prob,
+                                          labels+[output, ]
+                                          ))
+                    else:
+                        output_tops = torch.topk(output, n, 1)
+                        for i in range(output_tops[1].shape[1]):
+                            # if LogSoftmax then prob+ else *
+                            next_beam.append((hidden,
+                                              cell,
+                                              output_tops[1][:, i],
+                                              prob+output_tops[0][:, i],
+                                              labels+[output, ]
+                                              ))
+                beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
+            labels = sorted(beam, key=lambda x: x[3].mean())[0][4]
+            for i in range(len(labels)):
+                outputs[i] = labels[i]
         return outputs
 
 
@@ -352,7 +405,8 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         trg = batch.compressed
 
         try:
-            output = model(src, trg, 1, 1)
+            #output = model(src, trg, 1,1)
+            output = model(src, trg, False)
         except RuntimeError as exception:
             if "out of memory" in str(exception):
                 print("WARNING: out of memory")
@@ -402,7 +456,8 @@ def evaluate(model, iterator, criterion, beam=3, verbose=False):
             trg = batch.compressed
 
             try:
-                output = model(src, trg, 0, beam)
+                #output = model(src, trg, 0,beam)
+                output = model(src, trg, beam)
             except RuntimeError as exception:
                 if "out of memory" in str(exception):
                     print("WARNING: out of memory")
