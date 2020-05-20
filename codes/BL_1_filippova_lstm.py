@@ -340,8 +340,8 @@ class Seq2Seq(nn.Module):
                                           prob+output_tops[0][:, i],
                                           labels+[output, ]
                                           ))
-                beam = sorted(next_beam, key=lambda x: x[3].mean())[:n]
-            labels = sorted(beam, key=lambda x: x[3].mean())[0][4]
+                beam = sorted(next_beam, key=lambda x: x[3].mean(), reverse=True)[:n]
+            labels = sorted(beam, key=lambda x: x[3].mean(), reverse=True)[0][4]
             for i in range(len(labels)):
                 outputs[i] = labels[i]
         return outputs
