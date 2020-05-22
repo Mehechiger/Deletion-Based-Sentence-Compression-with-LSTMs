@@ -59,7 +59,7 @@ def tokenizer(text):
 
 
 def give_label(tabular_dataset):
-    to_pop = [] # to store bad exemples indexes
+    to_pop = []  # to store bad exemples indexes
     for i in range(len(tabular_dataset.examples)):
         orig = tabular_dataset.examples[i].original
         compr = tabular_dataset.examples[i].compressed
@@ -77,8 +77,9 @@ def give_label(tabular_dataset):
             else:
                 labels.append(0)
         tabular_dataset.examples[i].compressed = labels
-    for i in to_pop:
+    for i in to_pop[::-1]:
         tabular_dataset.examples.pop(i)
+
 
 """
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
@@ -122,6 +123,8 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
         )
     return res
 """
+
+
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     res = []
     for i in range(sent.shape[1]):
@@ -157,6 +160,7 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
             verbose=out,
         )
     return res
+
 
 ORIG = Field(lower=True, tokenize=tokenizer, init_token="<eos>", eos_token="<eos>")
 COMPR = Field(lower=True, tokenize=tokenizer, init_token="<eos>", eos_token="<eos>", unk_token=None)
