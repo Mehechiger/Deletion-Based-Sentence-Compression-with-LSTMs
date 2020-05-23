@@ -12,8 +12,23 @@ from torch import optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
 
+"""
+vectors_cache = (
+    "/Users/mehec/Google Drive/vector_cache"
+    if not os.path.isdir("/content/")
+    else "/content/drive/My Drive/vector_cache"
+)
+"""
+if not os.path.isdir("/content/"):
+    VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
+    PATH_OUTPUT = ""
+else:
+    VECTORS_CACHE = "/content/drive/My Drive/Colab_tmp/vector_cache"
+    PATH_OUTPUT = "/content/drive/My Drive/Colab_tmp/"
 
-def outputter(*content, verbose=False):
+
+def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
+    log = path_output + "output.log"
     if verbose:
         try:
             content = "".join(content)
@@ -24,14 +39,14 @@ def outputter(*content, verbose=False):
         if verbose == 1:
             print(content)
         elif verbose == 2:
-            with open("output.log", "a") as f:
+            with open(log, "a") as f:
                 f.write(content)
         elif verbose == 3:
             print(content)
-            with open("output.log", "a") as f:
+            with open(log, "a") as f:
                 f.write(content)
-        elif verbose == 4 and content == None:
-            with open("output.log", "w") as f:
+        elif verbose == 4 and content is None:
+            with open(log, "w") as f:
                 f.write()
 
 
@@ -81,7 +96,6 @@ def give_label(tabular_dataset):
             pass
     for i in to_pop[::-1]:
         tabular_dataset.examples.pop(i)
-
 
 
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
@@ -158,12 +172,7 @@ outputter("test: %s examples" % len(test.examples), verbose=VERBOSE)
 """
 """
 
-vectors_cache = (
-    "/Users/mehec/Google Drive/vector_cache"
-    if not os.path.isdir("/content/")
-    else "/content/drive/My Drive/vector_cache"
-)
-ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=vectors_cache)
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
