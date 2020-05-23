@@ -1,7 +1,7 @@
 # filippova 2015
 # base structure: https://www.jianshu.com/p/dbf00b590c70
 # gpu performance improvement: https://zhuanlan.zhihu.com/p/65002487
-# beam search(unfinished refinement): github.com/budzianowski/PyTorch-Beam-Search-Decoding
+# beam search(TODO unfinished refinement): github.com/budzianowski/PyTorch-Beam-Search-Decoding
 
 import os
 import time
@@ -12,13 +12,6 @@ from torch import optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 import spacy
 
-"""
-vectors_cache = (
-    "/Users/mehec/Google Drive/vector_cache"
-    if not os.path.isdir("/content/")
-    else "/content/drive/My Drive/vector_cache"
-)
-"""
 if not os.path.isdir("/content/"):
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
     PATH_OUTPUT = ""
@@ -28,7 +21,7 @@ else:
 
 
 def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
-    log = path_output + "output.log"
+    log = "%soutput%s.log" % (path_output, AFFIX)
     if verbose:
         try:
             content = "".join(content)
@@ -45,9 +38,9 @@ def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
             print(content)
             with open(log, "a") as f:
                 f.write(content)
-        elif verbose == 4 and content is None:
+        elif verbose == 4:
             with open(log, "w") as f:
-                f.write()
+                f.write("")
 
 
 # Output Verbose modes:
@@ -58,6 +51,9 @@ def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
 VERBOSE = 3
 TRAIN_VERBOSE = 2
 TEST_VERBOSE = 3
+
+# define AFFIX
+AFFIX = ""
 
 # clear output.log
 outputter(None, verbose=4)
@@ -165,12 +161,16 @@ give_label(test)
 #test, _ = test.split(split_ratio=0.001)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
+"""
+"""
 
 outputter("train: %s examples" % len(train.examples), verbose=VERBOSE)
 outputter("val: %s examples" % len(val.examples), verbose=VERBOSE)
 outputter("test: %s examples" % len(test.examples), verbose=VERBOSE)
-"""
-"""
+
+# split log files by epoch if train too big
+if len(train.examples) >= 10000:
+    AFFIX = "_epoch_0"
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 COMPR.build_vocab(train, min_freq=1)
@@ -264,12 +264,16 @@ class Seq2Seq(nn.Module):
             next_beam = []
             for hidden, cell, input_, prob, labels in beam:
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-                output_tops = torch.topk(output, beam_width, 1)
-                for i in range(output_tops[1].shape[1]):
+                # output_tops = torch.topk(output, min(beam_width, output.shape[1]), 1)
+                # for i in range(output_tops[1].shape[1]):
+                for i in range(output.shape[1]):
                     # if LogSoftmax then prob+ else *
-                    next_beam.append(
-                        (hidden, cell, output_tops[1][:, i], prob + output_tops[0][:, i], labels + [output, ])
-                    )
+                    next_beam.append((hidden,
+                                      cell,
+                                      output_tops[1][:, i],
+                                      prob + output_tops[0][:, i],
+                                      labels + [output, ]
+                                      ))
             beam = sorted(next_beam, key=lambda x: x[3], reverse=True)[:beam_width]
         labels = sorted(beam, key=lambda x: x[3], reverse=True)[0][4]
         for i in range(len(labels)):
@@ -403,11 +407,11 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-BEAM_WIDTH = 3
+BEAM_WIDTH = 10  # TODO find appropriate beam width
 
 best_valid_loss = float("inf")
 
-for epoch in range(N_EPOCHS):
+for epoch in range(N_EPOCHS):  # TODO add checkpoint to google drive (colab) or local (local) at each epoch end
     start_time = time.time()
 
     train_loss = train(
@@ -424,6 +428,10 @@ for epoch in range(N_EPOCHS):
     val_loss = evaluate(model, val_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TRAIN_VERBOSE)
 
     outputter(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
+
+    # update AFFIX if necessary
+    if AFFIX:
+        AFFIX = "_epoch_%s" % epoch
 
     """
     if val_loss <= 0.01:
