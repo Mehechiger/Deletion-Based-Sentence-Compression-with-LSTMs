@@ -70,59 +70,18 @@ def give_label(tabular_dataset):
         labels = []
         for j in range(len(orig)):
             if k >= len(compr):
-                break
+                labels.append(0)
             elif orig[j] == compr[k]:
                 labels.append(1)
                 k += 1
             else:
                 labels.append(0)
         tabular_dataset.examples[i].compressed = labels
+        if len(tabular_dataset.examples[i].compressed) != len(tabular_dataset.examples[i].original):
+            pass
     for i in to_pop[::-1]:
         tabular_dataset.examples.pop(i)
 
-
-"""
-def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
-    # temporary fix of the list index out of range
-    # pb caused by tokenization
-    res = []
-    for i in range(sent.shape[1]):
-        try:
-            orig = [orig_itos[sent[j, i]] for j in range(sent.shape[0])]
-            labels_ = [compr_itos[labels.max(2)[1][j, i]] for j in range(labels.shape[0])]
-            trg_ = [compr_itos[trg[j, i]] for j in range(trg.shape[0])]
-            compr = []
-            compr_trg = []
-            for j in range(len(orig)):
-                if labels_[j] == 1:
-                    compr.append(orig[j])
-                elif labels_[j] == 0:
-                    compr.append("<del>")
-                else:
-                    compr.append(labels_[j])
-                if trg_[j] == 1:
-                    compr_trg.append(orig[j])
-                elif trg_[j] == 0:
-                    compr_trg.append("<del>")
-                else:
-                    compr_trg.append(trg_[j])
-        except IndexError:
-            orig = compr = compr_trg = ["INDEX_ERROR", ]
-        res.append((orig, compr, compr_trg))
-        outputter(
-            "original:   ",
-            " ".join(orig),
-            "\n",
-            "compressed: ",
-            " ".join(compr),
-            "\n",
-            "gold:       ",
-            " ".join(compr_trg),
-            "\n\n",
-            verbose=out,
-        )
-    return res
-"""
 
 
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
