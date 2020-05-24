@@ -64,12 +64,12 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 outputter("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
 
-# SpaCy_EN = spacy.load("en_core_web_sm")
+SpaCy_EN = spacy.load("en_core_web_sm")
 
 
 def tokenizer(text):
-    # return [tok.text for tok in SpaCy_EN.tokenizer(text)]
-    return text.split()
+    return [tok.text for tok in SpaCy_EN.tokenizer(text)]
+    #return text.split()
 
 
 def give_label(tabular_dataset):
