@@ -198,6 +198,16 @@ class BeamSearchNode(object):
         self.prev_node = prev_node
 
 
+class PriorityEntry(object):  # prevent queue from comparing data
+
+    def __init__(self, priority, data):
+        self.data = data
+        self.priority = priority
+
+    def __lt__(self, other):
+        return self.priority < other.priority
+
+
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, hid_dim, n_layers, dropout):
         super().__init__()
@@ -260,27 +270,30 @@ class Seq2Seq(nn.Module):
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         prob = 0.0
         beam = PriorityQueue()
-        beam.put((-prob, (hidden, cell, input_, prob, output)))
+        # beam.put((-prob, (hidden, cell, input_, prob, output)))
+        beam.put(PriorityEntry(-prob, (hidden, cell, input_, prob, output)))
         for t in range(1, max_len):
             src_ = src[t, :]
             next_beam = PriorityQueue()
             while beam.qsize() > 0:
-                _, (hidden, cell, input_, prob, labels) = beam.get()
+                # _, (hidden, cell, input_, prob, labels) = beam.get()
+                hidden, cell, input_, prob, labels = beam.get().data
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
                     prob_i = prob + float(output_tops[0][:, i])
-                    next_beam.put((-prob_i, (hidden,
-                                             cell,
-                                             output_tops[1][:, i],
-                                             prob_i,
-                                             torch.cat((labels, output), dim=1)
-                                             )
-                                   ))
+                    # next_beam.put((-prob_i, (hidden, cell, output_tops[1][:, i], prob_i, torch.cat((labels, output), dim=1) ) ))
+                    next_beam.put(PriorityEntry(-prob_i, (hidden,
+                                                          cell,
+                                                          output_tops[1][:, i],
+                                                          prob_i,
+                                                          torch.cat((labels, output), dim=1)
+                                                          )
+                                                ))
             for i in range(min(beam_width, next_beam.qsize())):
-                prob_neg, tuple_ = next_beam.get()
-                beam.put((prob_neg, tuple_))
-        labels = beam.get()[1][4] if beam.qsize() > 0 else None
+                beam.put(next_beam.get())
+        # labels = beam.get()[1][4] if beam.qsize() > 0 else None
+        labels = beam.get().data[4] if beam.qsize() > 0 else None
         return labels.view(max_len, 1, -1)
 
     def beam_predict2(self, beam_width, src, input_, hidden, cell):
