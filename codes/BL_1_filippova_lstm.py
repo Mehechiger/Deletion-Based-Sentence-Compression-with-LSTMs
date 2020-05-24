@@ -457,7 +457,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-BEAM_WIDTH = 1  # TODO find appropriate beam width
+BEAM_WIDTH = 1000  # TODO find appropriate beam width
 
 best_valid_loss = float("inf")
 
