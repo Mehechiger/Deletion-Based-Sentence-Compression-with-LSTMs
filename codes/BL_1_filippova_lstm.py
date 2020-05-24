@@ -1,8 +1,10 @@
 # filippova 2015
 # base structure: https://www.jianshu.com/p/dbf00b590c70
 # gpu performance improvement: https://zhuanlan.zhihu.com/p/65002487
-# beam search(TODO unfinished refinement): github.com/budzianowski/PyTorch-Beam-Search-Decoding
-# - https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
+# beam search:
+# - priority queue: github.com/budzianowski/PyTorch-Beam-Search-Decoding
+# - TODO batch beam search: https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
+# - TODO length normalization: https://www.youtube.com/watch?v=gb__z7LlN_4
 
 import os
 import time
@@ -101,7 +103,8 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     res = []
     for i in range(sent.shape[1]):
         orig = [orig_itos[sent[j, i]] for j in range(sent.shape[0])]
-        labels_ = [compr_itos[labels.max(2)[1][j, i]] for j in range(labels.shape[0])]
+        labels_ = [compr_itos[labels.max(2)[1][j, i]]
+                   for j in range(labels.shape[0])]
         trg_ = [compr_itos[trg[j, i]] for j in range(trg.shape[0])]
         compr = []
         compr_trg = []
@@ -134,8 +137,10 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     return res
 
 
-ORIG = Field(lower=True, tokenize=tokenizer, init_token="<eos>", eos_token="<eos>")
-COMPR = Field(lower=True, tokenize=tokenizer, init_token="<eos>", eos_token="<eos>", unk_token=None)
+ORIG = Field(lower=True, tokenize=tokenizer,
+             init_token="<eos>", eos_token="<eos>")
+COMPR = Field(lower=True, tokenize=tokenizer, init_token="<eos>",
+              eos_token="<eos>", unk_token=None)
 
 path_data = "../Google_dataset_news/"
 
@@ -160,8 +165,8 @@ give_label(test)
 """
 # for testing use only small amount of data
 train, _ = train.split(split_ratio=0.1)
-val, _ = val.split(split_ratio=0.1)
-test, _ = test.split(split_ratio=0.1)
+val, _ = val.split(split_ratio=0.01)
+test, _ = test.split(split_ratio=0.01)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
 """
@@ -172,10 +177,12 @@ outputter("val: %s examples" % len(val.examples), verbose=VERBOSE)
 outputter("test: %s examples" % len(test.examples), verbose=VERBOSE)
 
 # split log files by epoch if train too big
-if len(train.examples) >= 10000:
-    AFFIX = "_epoch_0"
+if len(train.examples) + len(val.examples) + len(test.examples) >= 2000:
+    AFFIX = "_epoch_1"
+    outputter(None, verbose=4)
 
-ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d",
+                 vectors_cache=VECTORS_CACHE)
 COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
@@ -183,22 +190,24 @@ COMPR.build_vocab(train, min_freq=1)
 BATCH_SIZE = 32
 ACCUMULATION_STEPS = 8
 
+# for batch beam search
+"""
+train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
+                                                                    batch_size=BATCH_SIZE,
+                                                                    sort=False,
+                                                                    device=DEVICE
+                                                                    )
+"""
 (train_iterator,) = BucketIterator.splits((train,), batch_size=BATCH_SIZE, sort=False, device=DEVICE)
 
 # batch size = 1 for val/test
 val_iterator, test_iterator = BucketIterator.splits((val, test), batch_size=1, sort=False, device=DEVICE)
 
 
-class BeamSearchNode(object):
-    def __init__(self, hidden, cell, input_, prob, prev_node):
-        self.hidden = hidden
-        self.cell = cell
-        self.input_ = input_
-        self.prob = prob
-        self.prev_node = prev_node
-
-
 class PriorityEntry(object):  # prevent queue from comparing data
+    """
+    source: https://stackoverflow.com/a/40205431
+    """
 
     def __init__(self, priority, data):
         self.data = data
@@ -238,8 +247,10 @@ class Decoder(nn.Module):
 
         self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
         # self.embedding_input = nn.Embedding(output_dim, emb_input_dim)
-        self.embedding_input = lambda l: torch.eye(emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
-        self.rnn = nn.LSTM(emb_src_dim + emb_input_dim, hid_dim, n_layers, dropout=dropout)
+        self.embedding_input = lambda l: torch.eye(
+            emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
+        self.rnn = nn.LSTM(emb_src_dim + emb_input_dim,
+                           hid_dim, n_layers, dropout=dropout)
         self.out = nn.Linear(hid_dim, output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
@@ -270,75 +281,49 @@ class Seq2Seq(nn.Module):
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         prob = 0.0
         beam = PriorityQueue()
-        # beam.put((-prob, (hidden, cell, input_, prob, output)))
         beam.put(PriorityEntry(-prob, (hidden, cell, input_, prob, output)))
         for t in range(1, max_len):
             src_ = src[t, :]
             next_beam = PriorityQueue()
             while beam.qsize() > 0:
-                # _, (hidden, cell, input_, prob, labels) = beam.get()
                 hidden, cell, input_, prob, labels = beam.get().data
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-                output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
+                output_tops = torch.topk(
+                    output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
                     prob_i = prob + float(output_tops[0][:, i])
-                    # next_beam.put((-prob_i, (hidden, cell, output_tops[1][:, i], prob_i, torch.cat((labels, output), dim=1) ) ))
                     next_beam.put(PriorityEntry(-prob_i, (hidden,
                                                           cell,
                                                           output_tops[1][:, i],
                                                           prob_i,
-                                                          torch.cat((labels, output), dim=1)
+                                                          torch.cat(
+                                                              (labels, output), dim=1)
                                                           )
                                                 ))
             for i in range(min(beam_width, next_beam.qsize())):
                 beam.put(next_beam.get())
-        # labels = beam.get()[1][4] if beam.qsize() > 0 else None
         labels = beam.get().data[4] if beam.qsize() > 0 else None
         return labels.view(max_len, 1, -1)
 
-    def beam_predict2(self, beam_width, src, input_, hidden, cell):
-        max_len = src.shape[0]
-        for i in range(input_.shape[1]):  # batch_size
-            src_ = src[0, i]
-            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-            prob = 0
-
-            node = BeamSearchNode(hidden, cell, input_, 0, None)
-            nodes = PriorityQueue()
-
-            nodes.put(PriorityQueue(-node.prob, node))
-
-            while True:
-                _, nd = nodes.get()
-                prob = nd.prob
-                input_ = nd.input_
-                hidden = nd.hidden
-                cell = nd.cell
-
-                # TODO stop rules
-                """
-                if n.wordid.item() == EOS_token and n.prevNode != None:
-                    endnodes.append((score, n))
-                    # if we reached maximum # of sentences required
-                    if len(endnodes) >= number_required:
-                        break
-                    else:
-                        continue
-                """
-
-                src_ = src[0, :]
-                hidden, cell, output = self.decoder(src_, input, hidden, cell)
+    # for batch beam search
+    """
+    def batch_beam_predict(self, beam_width, src, input_, hidden, cell):
+        hidden = hidden.repeat(1, beam_width, 1)
+        cell = cell.repeat(1, beam_width, 1)
+        input_ = input_.view(1, -1)
+        pass
+    """
 
     def forward(self, src, trg, beam_width):
         batch_size = trg.shape[1]
         max_len = trg.shape[0]
         trg_vocab_size = self.decoder.output_dim
-        # outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input_ = trg[0, :]
         src_ = src[0, :]
         if not beam_width:  # teacher forcing mode
-            outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
+            outputs = torch.zeros(max_len, batch_size,
+                                  trg_vocab_size).to(self.device)
             for t in range(max_len):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
@@ -347,6 +332,8 @@ class Seq2Seq(nn.Module):
                     src_ = src[t + 1]
         else:  # beam predicting mode
             outputs = self.beam_predict(beam_width, src, input_, hidden, cell)
+            # for batch beam search
+            # outputs = self.batch_beam_predict(beam_width, src, input_, hidden, cell)
         return outputs
 
 
@@ -360,7 +347,8 @@ N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM,
+              DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
@@ -457,15 +445,21 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-BEAM_WIDTH = 1000  # TODO find appropriate beam width
+BEAM_WIDTH = 1000
 
 best_valid_loss = float("inf")
 
-for epoch in range(N_EPOCHS):  # TODO add checkpoint to google drive (colab) or local (local) at each epoch end
+# TODO add checkpoint to google drive (colab) or local (local) at each epoch end
+for epoch in range(N_EPOCHS):
     start_time = time.time()
 
     train_loss = train(
-        model, train_iterator, optimizer, criterion, verbose=TRAIN_VERBOSE, accumulation_steps=ACCUMULATION_STEPS
+        model,
+        train_iterator,
+        optimizer,
+        criterion,
+        verbose=TRAIN_VERBOSE,
+        accumulation_steps=ACCUMULATION_STEPS
     )
 
     end_time = time.time()
@@ -481,7 +475,8 @@ for epoch in range(N_EPOCHS):  # TODO add checkpoint to google drive (colab) or 
 
     # update AFFIX if necessary
     if AFFIX:
-        AFFIX = "_epoch_%s" % epoch
+        AFFIX = "_epoch_%s" % (epoch + 1)
+        outputter(None, verbose=4)
 
     """
     if val_loss <= 0.01:
