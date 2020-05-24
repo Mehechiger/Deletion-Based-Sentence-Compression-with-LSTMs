@@ -7,6 +7,7 @@
 import os
 import time
 import math
+from queue import PriorityQueue
 import torch
 import torch.nn as nn
 from torch import optim
@@ -158,9 +159,9 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.001)
-val, _ = val.split(split_ratio=0.001)
-test, _ = test.split(split_ratio=0.001)
+train, _ = train.split(split_ratio=0.1)
+val, _ = val.split(split_ratio=0.1)
+test, _ = test.split(split_ratio=0.1)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
 """
@@ -189,15 +190,12 @@ val_iterator, test_iterator = BucketIterator.splits((val, test), batch_size=1, s
 
 
 class BeamSearchNode(object):
-    def __init__(self, hidden, cell, input_, prob, labels):
+    def __init__(self, hidden, cell, input_, prob, prev_node):
         self.hidden = hidden
         self.cell = cell
         self.input_ = input_
         self.prob = prob
-        self.labels = labels
-
-    def eval(self):
-        return self.prob
+        self.prev_node = prev_node
 
 
 class Encoder(nn.Module):
@@ -256,28 +254,67 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def beam_predict(self, beam_width, src, input_, hidden, cell, batch_size, max_len):
+    def beam_predict(self, beam_width, src, input_, hidden, cell):
+        max_len = src.shape[0]
         src_ = src[0, :]
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-        prob = torch.zeros(batch_size, 1).to(self.device)
-        beam = {(hidden, cell, input_, prob, output), }
+        prob = 0.0
+        beam = PriorityQueue()
+        beam.put((-prob, (hidden, cell, input_, prob, output)))
         for t in range(1, max_len):
             src_ = src[t, :]
-            next_beam = set()
-            for hidden, cell, input_, prob, labels in beam:
+            next_beam = PriorityQueue()
+            while beam.qsize() > 0:
+                _, (hidden, cell, input_, prob, labels) = beam.get()
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
-                    # if LogSoftmax then prob+ else *
-                    next_beam.add((hidden,
-                                   cell,
-                                   output_tops[1][:, i],
-                                   prob + output_tops[0][:, i],
-                                   torch.cat((labels, output), dim=0)
+                    prob_i = prob + float(output_tops[0][:, i])
+                    next_beam.put((-prob_i, (hidden,
+                                             cell,
+                                             output_tops[1][:, i],
+                                             prob_i,
+                                             torch.cat((labels, output), dim=1)
+                                             )
                                    ))
-            beam = set(sorted(next_beam, key=lambda x: x[3], reverse=True)[:beam_width])
-        labels = sorted(beam, key=lambda x: x[3], reverse=True)[0][4]
-        return labels.view(max_len, batch_size, -1)
+            for i in range(min(beam_width, next_beam.qsize())):
+                prob_neg, tuple_ = next_beam.get()
+                beam.put((prob_neg, tuple_))
+        labels = beam.get()[1][4] if beam.qsize() > 0 else None
+        return labels.view(max_len, 1, -1)
+
+    def beam_predict2(self, beam_width, src, input_, hidden, cell):
+        max_len = src.shape[0]
+        for i in range(input_.shape[1]):  # batch_size
+            src_ = src[0, i]
+            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+            prob = 0
+
+            node = BeamSearchNode(hidden, cell, input_, 0, None)
+            nodes = PriorityQueue()
+
+            nodes.put(PriorityQueue(-node.prob, node))
+
+            while True:
+                _, nd = nodes.get()
+                prob = nd.prob
+                input_ = nd.input_
+                hidden = nd.hidden
+                cell = nd.cell
+
+                # TODO stop rules
+                """
+                if n.wordid.item() == EOS_token and n.prevNode != None:
+                    endnodes.append((score, n))
+                    # if we reached maximum # of sentences required
+                    if len(endnodes) >= number_required:
+                        break
+                    else:
+                        continue
+                """
+
+                src_ = src[0, :]
+                hidden, cell, output = self.decoder(src_, input, hidden, cell)
 
     def forward(self, src, trg, beam_width):
         batch_size = trg.shape[1]
@@ -296,7 +333,7 @@ class Seq2Seq(nn.Module):
                     input_ = trg[t + 1]
                     src_ = src[t + 1]
         else:  # beam predicting mode
-            outputs = self.beam_predict(beam_width, src, input_, hidden, cell, batch_size, max_len)
+            outputs = self.beam_predict(beam_width, src, input_, hidden, cell)
         return outputs
 
 
