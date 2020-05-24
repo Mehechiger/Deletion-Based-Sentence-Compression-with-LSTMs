@@ -2,6 +2,7 @@
 # base structure: https://www.jianshu.com/p/dbf00b590c70
 # gpu performance improvement: https://zhuanlan.zhihu.com/p/65002487
 # beam search(TODO unfinished refinement): github.com/budzianowski/PyTorch-Beam-Search-Decoding
+# - https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
 
 import os
 import time
@@ -61,12 +62,13 @@ outputter(None, verbose=4)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 outputter("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
-SpaCy_EN = spacy.load("en_core_web_sm")
+
+# SpaCy_EN = spacy.load("en_core_web_sm")
 
 
 def tokenizer(text):
-    return [tok.text for tok in SpaCy_EN.tokenizer(text)]
-    # return text.split()
+    # return [tok.text for tok in SpaCy_EN.tokenizer(text)]
+    return text.split()
 
 
 def give_label(tabular_dataset):
@@ -156,9 +158,9 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.001)
-#val, _ = val.split(split_ratio=0.001)
-#test, _ = test.split(split_ratio=0.001)
+train, _ = train.split(split_ratio=0.001)
+val, _ = val.split(split_ratio=0.001)
+test, _ = test.split(split_ratio=0.001)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
 """
@@ -254,40 +256,39 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def beam_predict(self, beam_width, src, input_, hidden, cell, outputs, batch_size, max_len):
+    def beam_predict(self, beam_width, src, input_, hidden, cell, batch_size, max_len):
         src_ = src[0, :]
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         prob = torch.zeros(batch_size, 1).to(self.device)
-        beam = [(hidden, cell, input_, prob, [output, ]), ]
+        beam = {(hidden, cell, input_, prob, output), }
         for t in range(1, max_len):
-            src_ = src[t]
-            next_beam = []
+            src_ = src[t, :]
+            next_beam = set()
             for hidden, cell, input_, prob, labels in beam:
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-                output_tops = torch.topk(output, output.shape[1], 1) # to get indices
+                output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
                     # if LogSoftmax then prob+ else *
-                    next_beam.append((hidden,
-                                      cell,
-                                      output_tops[1][:, i],
-                                      prob + output_tops[0][:, i],
-                                      labels + [output, ]
-                                      ))
-            beam = sorted(next_beam, key=lambda x: x[3], reverse=True)[:beam_width]
+                    next_beam.add((hidden,
+                                   cell,
+                                   output_tops[1][:, i],
+                                   prob + output_tops[0][:, i],
+                                   torch.cat((labels, output), dim=0)
+                                   ))
+            beam = set(sorted(next_beam, key=lambda x: x[3], reverse=True)[:beam_width])
         labels = sorted(beam, key=lambda x: x[3], reverse=True)[0][4]
-        for i in range(len(labels)):
-            outputs[i] = labels[i]
-        return outputs
+        return labels.view(max_len, batch_size, -1)
 
     def forward(self, src, trg, beam_width):
         batch_size = trg.shape[1]
         max_len = trg.shape[0]
         trg_vocab_size = self.decoder.output_dim
-        outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
+        # outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input_ = trg[0, :]
         src_ = src[0, :]
         if not beam_width:  # teacher forcing mode
+            outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
             for t in range(max_len):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
@@ -295,7 +296,7 @@ class Seq2Seq(nn.Module):
                     input_ = trg[t + 1]
                     src_ = src[t + 1]
         else:  # beam predicting mode
-            outputs = self.beam_predict(beam_width, src, input_, hidden, cell, outputs, batch_size, max_len)
+            outputs = self.beam_predict(beam_width, src, input_, hidden, cell, batch_size, max_len)
         return outputs
 
 
