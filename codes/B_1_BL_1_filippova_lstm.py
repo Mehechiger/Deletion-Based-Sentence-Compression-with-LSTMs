@@ -418,6 +418,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
 def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
     model.eval()
     epoch_loss = 0
+    res = []
 
     with torch.no_grad():
         for i, batch in enumerate(iterator):
@@ -435,9 +436,9 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
                     raise exception
 
             if verbose:
-                res = compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
+                res += compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
             else:
-                res = compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=1)
+                res += compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=1)
 
             output = output.view(-1, output.shape[-1])
             trg = trg.view(-1)
