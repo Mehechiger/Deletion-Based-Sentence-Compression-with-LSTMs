@@ -26,7 +26,7 @@ else:
     PATH_OUTPUT = "/content/drive/My Drive/Colab_tmp/"
 
 
-def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
+def logger(*content, verbose=False, path_output=PATH_OUTPUT):
     log = "%soutput%s.log" % (path_output, AFFIX)
     if verbose:
         try:
@@ -63,10 +63,10 @@ TEST_VERBOSE = 3
 AFFIX = ""
 
 # clear output.log
-outputter(None, verbose=4)
+logger(None, verbose=4)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-outputter("using device: %s\n" % DEVICE, verbose=VERBOSE)
+logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
 
 def splitter(text):
@@ -93,7 +93,7 @@ def give_label(tabular_dataset):
                                                                                                                  compr
                                                                                                                  ))
 
-
+# TODO modify to be used as result outputter
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     res = []
     for i in range(sent.shape[1]):
@@ -116,7 +116,7 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
             else:
                 compr_trg.append(trg_[j])
         res.append((orig, compr, compr_trg))
-        outputter(
+        logger(
             "original:   ", " ".join(orig), "\n",
             "compressed: ", " ".join(compr), "\n",
             "gold:       ", " ".join(compr_trg), "\n\n",
@@ -158,21 +158,21 @@ test, _ = test.split(split_ratio=0.005)
 """
 """
 
-outputter("train: %s examples" % len(train.examples), verbose=VERBOSE)
-outputter("val: %s examples" % len(val.examples), verbose=VERBOSE)
-outputter("test: %s examples" % len(test.examples), verbose=VERBOSE)
+logger("train: %s examples" % len(train.examples), verbose=VERBOSE)
+logger("val: %s examples" % len(val.examples), verbose=VERBOSE)
+logger("test: %s examples" % len(test.examples), verbose=VERBOSE)
 
 # split log files by epoch if train too big
 if len(train.examples) + len(val.examples) + len(test.examples) >= 2000:
     AFFIX = "_epoch_1"
-    outputter(None, verbose=4)
+    logger(None, verbose=4)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
-BATCH_SIZE = 1024
+BATCH_SIZE = 128
 ACCUMULATION_STEPS = 1
 
 # for batch beam search
@@ -381,7 +381,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         trg = trg.view(-1)
 
         loss = criterion(output, trg)
-        outputter("batch %s, loss: " % i, loss.item(), verbose=3)
+        logger("batch %s, loss: " % i, loss.item(), verbose=3)
 
         loss.backward()
 
@@ -457,17 +457,17 @@ for epoch in range(N_EPOCHS):
 
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
-    outputter(f"Epoch: {epoch + 1:02} | Time: {epoch_mins}m {epoch_secs}s", verbose=VERBOSE)
-    outputter(f"\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
+    logger(f"Epoch: {epoch + 1:02} | Time: {epoch_mins}m {epoch_secs}s", verbose=VERBOSE)
+    logger(f"\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
 
     val_loss = evaluate(model, val_iterator, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
 
-    outputter(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
+    logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
 
     # update AFFIX if necessary
     if AFFIX:
         AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
-        outputter(None, verbose=4)
+        logger(None, verbose=4)
 
     """
     if val_loss <= 0.01:
@@ -475,4 +475,4 @@ for epoch in range(N_EPOCHS):
     """
 
 test_loss = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
-outputter(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
+logger(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
