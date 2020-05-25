@@ -4,7 +4,7 @@
 # beam search:
 # - priority queue: github.com/budzianowski/PyTorch-Beam-Search-Decoding
 # - TODO batch beam search: https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
-# - TODO beam search prob normalizations:
+# - beam search prob normalizations:
 # - - https://www.youtube.com/watch?v=gb__z7LlN_4
 # - - https://opennmt.net/OpenNMT/translation/beam_search/
 # - - https://arxiv.org/pdf/1609.08144.pdf
@@ -117,15 +117,9 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
                 compr_trg.append(trg_[j])
         res.append((orig, compr, compr_trg))
         outputter(
-            "original:   ",
-            " ".join(orig),
-            "\n",
-            "compressed: ",
-            " ".join(compr),
-            "\n",
-            "gold:       ",
-            " ".join(compr_trg),
-            "\n\n",
+            "original:   ", " ".join(orig), "\n",
+            "compressed: ", " ".join(compr), "\n",
+            "gold:       ", " ".join(compr_trg), "\n\n",
             verbose=out,
         )
     return res
@@ -156,7 +150,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.1)
+train, _ = train.split(split_ratio=0.05)
 val, _ = val.split(split_ratio=0.001)
 test, _ = test.split(split_ratio=0.001)
 # test, _ = train.split(split_ratio=0.1)
