@@ -4,7 +4,10 @@
 # beam search:
 # - priority queue: github.com/budzianowski/PyTorch-Beam-Search-Decoding
 # - TODO batch beam search: https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
-# - TODO length normalization: https://www.youtube.com/watch?v=gb__z7LlN_4
+# - TODO beam search prob normalizations:
+# - - https://www.youtube.com/watch?v=gb__z7LlN_4
+# - - https://opennmt.net/OpenNMT/translation/beam_search/
+# - - https://arxiv.org/pdf/1609.08144.pdf
 
 import os
 import time
@@ -263,31 +266,35 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def beam_predict(self, beam_width, src, input_, hidden, cell):
+    def beam_predict(self, src, input_, hidden, cell, beam_width, lp_alpha=1):
+        def normalize(prob, l, alpha=lp_alpha):
+            lp = (5 + l) ** alpha / 6 ** alpha
+            cp = 0  # coverage penalty - for attention mechanism
+            return prob / lp + cp
+
         max_len = src.shape[0]
         src_ = src[0, :]
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         prob = 0.0
         beam = PriorityQueue()
-        beam.put(PriorityEntry(-prob, (hidden, cell, input_, prob, output)))
+        beam.put(PriorityEntry(-normalize(prob, 1), (hidden, cell, input_, prob, output)))
         for t in range(1, max_len):
             src_ = src[t, :]
             next_beam = PriorityQueue()
             while beam.qsize() > 0:
                 hidden, cell, input_, prob, labels = beam.get().data
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-                output_tops = torch.topk(
-                    output, output.shape[1], 1)  # to get indices
+                output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
-                    #prob_i = prob + float(output_tops[0][:, i])
-                    prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
-                    next_beam.put(PriorityEntry(-prob_i, (hidden,
-                                                          cell,
-                                                          output_tops[1][:, i],
-                                                          prob_i,
-                                                          torch.cat(
-                                                              (labels, output), dim=1)
-                                                          )
+                    prob_i = prob + float(output_tops[0][:, i])
+                    # prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
+                    next_beam.put(PriorityEntry(-normalize(prob_i, t + 1),
+                                                (hidden,
+                                                 cell,
+                                                 output_tops[1][:, i],
+                                                 prob_i,
+                                                 torch.cat((labels, output), dim=1)
+                                                 )
                                                 ))
             for i in range(min(beam_width, next_beam.qsize())):
                 beam.put(next_beam.get())
@@ -320,7 +327,7 @@ class Seq2Seq(nn.Module):
                     input_ = trg[t + 1]
                     src_ = src[t + 1]
         else:  # beam predicting mode
-            outputs = self.beam_predict(beam_width, src, input_, hidden, cell)
+            outputs = self.beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
             # for batch beam search
             # outputs = self.batch_beam_predict(beam_width, src, input_, hidden, cell)
         return outputs
@@ -435,6 +442,7 @@ def epoch_time(start_time, end_time):
 
 N_EPOCHS = 20
 BEAM_WIDTH = 10
+LP_ALPHA = 1
 
 best_valid_loss = float("inf")
 
