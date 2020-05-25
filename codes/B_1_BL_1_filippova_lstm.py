@@ -150,7 +150,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.1)
+train, _ = train.split(split_ratio=0.01)
 val, _ = val.split(split_ratio=0.005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
@@ -172,8 +172,8 @@ COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
-BATCH_SIZE = 32
-ACCUMULATION_STEPS = 8
+BATCH_SIZE = 256
+ACCUMULATION_STEPS = 1
 
 # for batch beam search
 """
@@ -333,7 +333,7 @@ ENC_EMB_DIM = 256
 DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = OUTPUT_DIM
 HID_DIM = ENC_EMB_DIM
-N_LAYERS = 2
+N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
@@ -466,7 +466,7 @@ for epoch in range(N_EPOCHS):
 
     # update AFFIX if necessary
     if AFFIX:
-        AFFIX = "_epoch_%s" % (epoch + 2) if epoch<N_EPOCHS-1 else "_test"
+        AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
         outputter(None, verbose=4)
 
     """
