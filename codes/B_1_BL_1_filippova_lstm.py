@@ -279,8 +279,8 @@ class Seq2Seq(nn.Module):
                 output_tops = torch.topk(
                     output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
-                    # prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
-                    prob_i = prob + float(output_tops[0][:, i])
+                    #prob_i = prob + float(output_tops[0][:, i])
+                    prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
                     next_beam.put(PriorityEntry(-prob_i, (hidden,
                                                           cell,
                                                           output_tops[1][:, i],
