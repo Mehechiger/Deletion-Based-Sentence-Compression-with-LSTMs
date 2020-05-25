@@ -33,7 +33,7 @@ def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
         content += "\n"
 
         if verbose == 1:
-            print(content)
+            pass
         elif verbose == 2:
             with open(log, "a") as f:
                 f.write(content)
@@ -47,12 +47,12 @@ def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
 
 
 # Output Verbose modes:
-# 1 = print only
+# 1 = silent
 # 2 = write only
 # 3 = print and write
 # 4, None, False, 0 = clear log file
 VERBOSE = 3
-TRAIN_VERBOSE = 2
+TRAIN_VERBOSE = 1
 TEST_VERBOSE = 3
 
 # define AFFIX
