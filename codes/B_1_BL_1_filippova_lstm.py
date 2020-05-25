@@ -279,6 +279,7 @@ class Seq2Seq(nn.Module):
                 output_tops = torch.topk(
                     output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
+                    # prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
                     prob_i = prob + float(output_tops[0][:, i])
                     next_beam.put(PriorityEntry(-prob_i, (hidden,
                                                           cell,
@@ -433,7 +434,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-BEAM_WIDTH = 100
+BEAM_WIDTH = 10
 
 best_valid_loss = float("inf")
 
