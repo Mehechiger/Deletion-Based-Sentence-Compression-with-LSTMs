@@ -129,7 +129,7 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
 
 
 def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT):
-    file = path_output + file_name
+    file = path_output + file_name + ".json"
     to_dump = []
     for orig, compr, compr_trg in res:
         if show_spe_token:
@@ -483,7 +483,7 @@ for epoch in range(N_EPOCHS):
     logger(f"\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
 
     val_loss, val_res = evaluate(model, val_iterator, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
-    res_outputter(val_res, "")
+    res_outputter(val_res, "val_res_epoch%s" % (epoch + 1))
 
     logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
 
@@ -498,6 +498,6 @@ for epoch in range(N_EPOCHS):
     """
 
 test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
-res_outputter(test_res, "")
+res_outputter(test_res, "test_res")
 
 logger(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
