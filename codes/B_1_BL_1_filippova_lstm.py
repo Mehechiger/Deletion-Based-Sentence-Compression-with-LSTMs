@@ -93,7 +93,7 @@ def give_label(tabular_dataset):
                                                                                                                  compr
                                                                                                                  ))
 
-# TODO modify to be used as result outputter
+
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     res = []
     for i in range(sent.shape[1]):
@@ -125,6 +125,13 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     return res
 
 
+def res_outputter(res, file_path):
+    for orig, compr, compr_trg in res:
+        print(orig)
+        print(compr)
+        print(compr_trg)
+
+
 ORIG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
 COMPR = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
@@ -150,7 +157,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.1)
+train, _ = train.split(split_ratio=0.05)
 val, _ = val.split(split_ratio=0.005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
@@ -415,7 +422,9 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
                     raise exception
 
             if verbose:
-                compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
+                res = compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
+            else:
+                res = compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=1)
 
             output = output.view(-1, output.shape[-1])
             trg = trg.view(-1)
@@ -424,7 +433,7 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
 
             epoch_loss += loss.item()
 
-    return epoch_loss / len(iterator)
+    return epoch_loss / len(iterator), res
 
 
 def epoch_time(start_time, end_time):
@@ -460,7 +469,8 @@ for epoch in range(N_EPOCHS):
     logger(f"Epoch: {epoch + 1:02} | Time: {epoch_mins}m {epoch_secs}s", verbose=VERBOSE)
     logger(f"\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
 
-    val_loss = evaluate(model, val_iterator, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+    val_loss, val_res = evaluate(model, val_iterator, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+    res_outputter(*val_res, "")
 
     logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
 
@@ -474,5 +484,7 @@ for epoch in range(N_EPOCHS):
         break
     """
 
-test_loss = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
+test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
+res_outputter(*test_res, "")
+
 logger(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
