@@ -13,6 +13,7 @@ import os
 import time
 import math
 from queue import PriorityQueue
+import json
 import torch
 import torch.nn as nn
 from torch import optim
@@ -20,14 +21,16 @@ from torchtext.data import Field, BucketIterator, TabularDataset
 
 if not os.path.isdir("/content/"):
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
-    PATH_OUTPUT = ""
+    PATH_LOG = "../outputs/"
+    PATH_OUTPUT = "../outputs/"
 else:
     VECTORS_CACHE = "/content/drive/My Drive/Colab_tmp/vector_cache"
+    PATH_LOG = "/content/drive/My Drive/Colab_tmp/"
     PATH_OUTPUT = "/content/drive/My Drive/Colab_tmp/"
 
 
-def logger(*content, verbose=False, path_output=PATH_OUTPUT):
-    log = "%soutput%s.log" % (path_output, AFFIX)
+def logger(*content, verbose=False, path_log=PATH_LOG):
+    log = "%soutput%s.log" % (path_log, AFFIX)
     if verbose:
         try:
             content = "".join(content)
@@ -125,11 +128,21 @@ def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
     return res
 
 
-def res_outputter(res, file_path):
+def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT):
+    file = path_output + file_name
+    to_dump = []
     for orig, compr, compr_trg in res:
-        print(orig)
-        print(compr)
-        print(compr_trg)
+        if show_spe_token:
+            orig = " ".join(orig)
+            compr = " ".join(compr)
+            compr_trg = " ".join(compr_trg)
+        else:
+            orig = " ".join(s for s in orig if s != "<eos>" and s != "<pad>" and s != "<del>")
+            compr = " ".join(s for s in compr if s != "<eos>" and s != "<pad>" and s != "<del>")
+            compr_trg = " ".join(s for s in compr_trg if s != "<eos>" and s != "<pad>" and s != "<del>")
+        to_dump.append(dict(orig=orig, hyp=compr, ref=compr_trg))
+    with open(file, "w") as f:
+        json.dump(to_dump, f)
 
 
 ORIG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
@@ -157,7 +170,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.1)
+train, _ = train.split(split_ratio=0.01)
 val, _ = val.split(split_ratio=0.005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
