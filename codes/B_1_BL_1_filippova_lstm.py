@@ -470,7 +470,7 @@ for epoch in range(N_EPOCHS):
     logger(f"\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
 
     val_loss, val_res = evaluate(model, val_iterator, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
-    res_outputter(*val_res, "")
+    res_outputter(val_res, "")
 
     logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
 
@@ -485,6 +485,6 @@ for epoch in range(N_EPOCHS):
     """
 
 test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
-res_outputter(*test_res, "")
+res_outputter(test_res, "")
 
 logger(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
