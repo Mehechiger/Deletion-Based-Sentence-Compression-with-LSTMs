@@ -53,7 +53,7 @@ def outputter(*content, verbose=False, path_output=PATH_OUTPUT):
 # 4, None, False, 0 = clear log file
 VERBOSE = 3
 TRAIN_VERBOSE = 1
-VAL_VERBOSE = 3
+VAL_VERBOSE = 2
 TEST_VERBOSE = 3
 
 # define AFFIX
@@ -153,7 +153,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.2)
+train, _ = train.split(split_ratio=0.1)
 val, _ = val.split(split_ratio=0.001)
 test, _ = test.split(split_ratio=0.001)
 # test, _ = train.split(split_ratio=0.1)
@@ -379,7 +379,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         trg = trg.view(-1)
 
         loss = criterion(output, trg)
-        outputter("batch %s, loss: " % i, loss.item(), verbose=3 if verbose == 2 else verbose)
+        outputter("batch %s, loss: " % i, loss.item(), verbose=3)
 
         loss.backward()
 
@@ -433,7 +433,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-BEAM_WIDTH = 1000
+BEAM_WIDTH = 10000
 
 best_valid_loss = float("inf")
 
