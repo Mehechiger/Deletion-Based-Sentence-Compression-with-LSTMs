@@ -15,9 +15,6 @@ import torch.nn as nn
 from torch import optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 
-# import spacy
-
-
 if not os.path.isdir("/content/"):
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
     PATH_OUTPUT = ""
@@ -68,23 +65,14 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 outputter("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
 
-# SpaCy_EN = spacy.load("en_core_web_sm")
-
 def splitter(text):
-    # return [tok.text for tok in SpaCy_EN.tokenizer(text)]
     return text.split(" ")
 
 
 def give_label(tabular_dataset):
-    #to_pop = []  # to store bad exemples indices
     for i in range(len(tabular_dataset.examples)):
         orig = tabular_dataset.examples[i].original
         compr = tabular_dataset.examples[i].compressed
-        """
-        if not set(orig).issuperset(compr):
-            to_pop.append(i)
-            continue
-        """
         k = 0
         labels = []
         for j in range(len(orig)):
@@ -97,11 +85,9 @@ def give_label(tabular_dataset):
                 labels.append(0)
         tabular_dataset.examples[i].compressed = labels
         if len(tabular_dataset.examples[i].compressed) != len(tabular_dataset.examples[i].original):
-            pass
-    """
-    for i in to_pop[::-1]:
-        tabular_dataset.examples.pop(i)
-    """
+            raise IndexError('Original and Compressed sentences do not match in length:\nOrig: %s\nCompr: %s' % (orig,
+                                                                                                                 compr
+                                                                                                                 ))
 
 
 def compress_with_labels(sent, trg, labels, orig_itos, compr_itos, out=False):
@@ -476,7 +462,7 @@ for epoch in range(N_EPOCHS):
 
     # update AFFIX if necessary
     if AFFIX:
-        AFFIX = "_epoch_%s" % (epoch + 1)
+        AFFIX = "_epoch_%s" % (epoch + 2)
         outputter(None, verbose=4)
 
     """

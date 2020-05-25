@@ -18,8 +18,6 @@ def tokenizer(text):
 
 def to_csv_record(writer, buffer):
     record = json.loads(buffer)
-    # writer.writerow(dict(original=record['graph']['sentence'], compressed=record['compression']['text'] ))
-    # writer.writerow(dict(original=tokenizer(record['graph']['sentence']), compressed=tokenizer(record['compression']['text']) ))
     original = tokenizer(record['graph']['sentence'])
     compressed = tokenizer(record['compression']['text'])
     if set(original).issuperset(compressed):
