@@ -170,7 +170,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
+#train, _ = train.split(split_ratio=0.01)
 val, _ = val.split(split_ratio=0.005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
@@ -364,7 +364,7 @@ model.to(DEVICE)
 
 LR = 2
 optimizer = optim.SGD(model.parameters(), lr=LR)
-STEP_SIZE = 300000/(BATCH_SIZE*ACCUMULATION_STEPS)
+STEP_SIZE = 300000 / (BATCH_SIZE * ACCUMULATION_STEPS)
 GAMMA = 0.96
 scheduler = optim.lr_scheduler.StepLR(optimizer,
                                       step_size=STEP_SIZE,
@@ -376,7 +376,15 @@ optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
 
 
-def train(model, iterator, optimizer, criterion, verbose=False, accumulation_steps=1):
+def train(model,
+          iterator,
+          optimizer,
+          criterion,
+          accumulation_steps,
+          verbose=False,
+          val_in_epoch=None,
+          val_in_epoch_steps=None
+          ):
     model.train()
     epoch_loss = 0
 
@@ -409,6 +417,10 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
             optimizer.step()
             optimizer.zero_grad()
             scheduler.step()
+
+        if val_in_epoch and ((i + 1) % val_in_epoch_steps) == 0:
+            val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+            logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
 
         epoch_loss += loss.item()
 
@@ -467,14 +479,15 @@ best_valid_loss = float("inf")
 for epoch in range(N_EPOCHS):
     start_time = time.time()
 
-    train_loss = train(
-        model,
-        train_iterator,
-        optimizer,
-        criterion,
-        verbose=TRAIN_VERBOSE,
-        accumulation_steps=ACCUMULATION_STEPS
-    )
+    train_loss = train(model,
+                       train_iterator,
+                       optimizer,
+                       criterion,
+                       accumulation_steps=ACCUMULATION_STEPS,
+                       verbose=TRAIN_VERBOSE,
+                       val_in_epoch=val_iterator,
+                       val_in_epoch_steps=512//BATCH_SIZE
+                       )
 
     end_time = time.time()
 
