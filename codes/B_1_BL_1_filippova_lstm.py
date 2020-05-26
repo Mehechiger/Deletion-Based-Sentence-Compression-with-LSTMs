@@ -170,7 +170,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.001)
+train, _ = train.split(split_ratio=0.1)
 val, _ = val.split(split_ratio=0.005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
@@ -193,7 +193,7 @@ COMPR.build_vocab(train, min_freq=1)
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
 BATCH_SIZE = 32
-ACCUMULATION_STEPS = 128
+ACCUMULATION_STEPS = 1
 
 # for batch beam search
 """
@@ -332,13 +332,14 @@ class Seq2Seq(nn.Module):
         input_ = trg[0, :]
         src_ = src[0, :]
         if not beam_width:  # teacher forcing mode
-            outputs = torch.zeros(max_len, batch_size,
-                                  trg_vocab_size).to(self.device)
+            outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
             for t in range(max_len):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
+                top1 = output.max(1)[1]
                 if t + 1 < max_len:
-                    input_ = trg[t + 1]
+                    # input_ = trg[t + 1]
+                    input_ = top1
                     src_ = src[t + 1]
         else:  # beam predicting mode
             outputs = self.beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
