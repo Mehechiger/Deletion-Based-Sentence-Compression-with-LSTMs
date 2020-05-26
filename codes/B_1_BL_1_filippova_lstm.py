@@ -173,9 +173,9 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.01)
-#val, _ = val.split(split_ratio=0.005)
-val, _ = train.split(split_ratio=0.00005)
+# train, _ = train.split(split_ratio=0.01)
+# val, _ = val.split(split_ratio=0.005)
+_, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
@@ -190,7 +190,6 @@ logger("test: %s examples" % len(test.examples), verbose=VERBOSE)
 if len(train.examples) + len(val.examples) + len(test.examples) >= 2000:
     AFFIX = "_epoch_1"
     logger(None, verbose=4)
-
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
@@ -489,7 +488,7 @@ for epoch in range(N_EPOCHS):
                        accumulation_steps=ACCUMULATION_STEPS,
                        verbose=TRAIN_VERBOSE,
                        val_in_epoch=val_iterator,
-                       val_in_epoch_steps=512//BATCH_SIZE
+                       val_in_epoch_steps=512 // BATCH_SIZE
                        )
 
     end_time = time.time()
