@@ -170,7 +170,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.001)
+train, _ = train.split(split_ratio=0.01)
 val, _ = val.split(split_ratio=0.005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
@@ -192,7 +192,7 @@ COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 ACCUMULATION_STEPS = 1
 
 # for batch beam search
