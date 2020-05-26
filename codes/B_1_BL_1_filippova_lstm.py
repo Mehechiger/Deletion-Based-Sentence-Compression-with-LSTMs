@@ -192,7 +192,7 @@ COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
-BATCH_SIZE = 32
+BATCH_SIZE = 256
 ACCUMULATION_STEPS = 1
 
 # for batch beam search
