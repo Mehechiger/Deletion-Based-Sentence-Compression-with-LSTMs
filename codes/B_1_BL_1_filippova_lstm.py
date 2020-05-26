@@ -174,7 +174,8 @@ COMPR.build_vocab(train, min_freq=1)
 """
 # for testing use only small amount of data
 #train, _ = train.split(split_ratio=0.01)
-val, _ = val.split(split_ratio=0.005)
+#val, _ = val.split(split_ratio=0.005)
+val, _ = train.split(split_ratio=0.00005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
