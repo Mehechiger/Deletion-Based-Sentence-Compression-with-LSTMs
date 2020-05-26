@@ -384,8 +384,9 @@ def train(model,
           criterion,
           accumulation_steps,
           verbose=False,
+          train_in_epoch=False,
           val_in_epoch=None,
-          val_in_epoch_steps=None
+          in_epoch_steps=None
           ):
     model.train()
     epoch_loss = 0
@@ -420,7 +421,11 @@ def train(model,
             optimizer.zero_grad()
             #scheduler.step()
 
-        if val_in_epoch and ((i + 1) % val_in_epoch_steps) == 0:
+        if train_in_epoch and ((i + 1) % in_epoch_steps) == 0:
+            train_loss, train_res = evaluate(model, [batch,], criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+            logger(f"\tVal Loss: {train_loss:.3f} | Val PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
+            model.train()
+        if val_in_epoch and ((i + 1) % in_epoch_steps) == 0:
             val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
             logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
             model.train()
@@ -488,8 +493,9 @@ for epoch in range(N_EPOCHS):
                        criterion,
                        accumulation_steps=ACCUMULATION_STEPS,
                        verbose=TRAIN_VERBOSE,
+                       train_in_epoch=True,
                        val_in_epoch=val_iterator,
-                       val_in_epoch_steps=512 // BATCH_SIZE
+                       in_epoch_steps=512 // BATCH_SIZE
                        )
 
     end_time = time.time()
