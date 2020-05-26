@@ -374,7 +374,6 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,
 optimizer = optim.Adam(model.parameters())
 """
 criterion = nn.NLLLoss()
-"""
 
 
 def train(model, iterator, optimizer, criterion, verbose=False, accumulation_steps=1):
