@@ -372,6 +372,7 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,
                                       )
 """
 optimizer = optim.Adam(model.parameters())
+"""
 criterion = nn.NLLLoss()
 """
 
