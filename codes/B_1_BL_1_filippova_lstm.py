@@ -363,6 +363,8 @@ dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM,
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
+
+"""
 LR = 2
 optimizer = optim.SGD(model.parameters(), lr=LR)
 STEP_SIZE = 300000 / (BATCH_SIZE * ACCUMULATION_STEPS)
@@ -373,7 +375,6 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,
                                       )
 """
 optimizer = optim.Adam(model.parameters())
-"""
 criterion = nn.NLLLoss()
 
 
@@ -417,7 +418,7 @@ def train(model,
         if ((i + 1) % accumulation_steps) == 0:
             optimizer.step()
             optimizer.zero_grad()
-            scheduler.step()
+            #scheduler.step()
 
         if val_in_epoch and ((i + 1) % val_in_epoch_steps) == 0:
             val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
