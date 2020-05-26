@@ -167,6 +167,9 @@ test = TabularDataset(
 )
 give_label(test)
 
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+COMPR.build_vocab(train, min_freq=1)
+
 """
 """
 # for testing use only small amount of data
@@ -187,8 +190,6 @@ if len(train.examples) + len(val.examples) + len(test.examples) >= 2000:
     AFFIX = "_epoch_1"
     logger(None, verbose=4)
 
-ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
-COMPR.build_vocab(train, min_freq=1)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
