@@ -170,7 +170,7 @@ give_label(test)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
+train, _ = train.split(split_ratio=0.001)
 val, _ = val.split(split_ratio=0.005)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
