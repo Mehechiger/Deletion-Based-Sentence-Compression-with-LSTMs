@@ -167,11 +167,15 @@ test = TabularDataset(
 )
 give_label(test)
 
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+COMPR.build_vocab(train, min_freq=1)
+
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.1)
-val, _ = val.split(split_ratio=0.005)
+# train, _ = train.split(split_ratio=0.01)
+# val, _ = val.split(split_ratio=0.005)
+_, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
@@ -187,12 +191,9 @@ if len(train.examples) + len(val.examples) + len(test.examples) >= 2000:
     AFFIX = "_epoch_1"
     logger(None, verbose=4)
 
-ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
-COMPR.build_vocab(train, min_freq=1)
-
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
-BATCH_SIZE = 256
+BATCH_SIZE = 32
 ACCUMULATION_STEPS = 1
 
 # for batch beam search
@@ -332,7 +333,8 @@ class Seq2Seq(nn.Module):
         input_ = trg[0, :]
         src_ = src[0, :]
         if not beam_width:  # teacher forcing mode
-            outputs = torch.zeros(max_len, batch_size, trg_vocab_size).to(self.device)
+            outputs = torch.zeros(max_len, batch_size,
+                                  trg_vocab_size).to(self.device)
             for t in range(max_len):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
@@ -377,7 +379,15 @@ optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
 
 
-def train(model, iterator, optimizer, criterion, verbose=False, accumulation_steps=1):
+def train(model,
+          iterator,
+          optimizer,
+          criterion,
+          accumulation_steps,
+          verbose=False,
+          val_in_epoch=None,
+          val_in_epoch_steps=None
+          ):
     model.train()
     epoch_loss = 0
 
@@ -410,6 +420,11 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
             optimizer.step()
             optimizer.zero_grad()
             # scheduler.step()
+
+        if val_in_epoch and ((i + 1) % val_in_epoch_steps) == 0:
+            val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+            logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
+            model.train()
 
         epoch_loss += loss.item()
 
@@ -468,14 +483,15 @@ best_valid_loss = float("inf")
 for epoch in range(N_EPOCHS):
     start_time = time.time()
 
-    train_loss = train(
-        model,
-        train_iterator,
-        optimizer,
-        criterion,
-        verbose=TRAIN_VERBOSE,
-        accumulation_steps=ACCUMULATION_STEPS
-    )
+    train_loss = train(model,
+                       train_iterator,
+                       optimizer,
+                       criterion,
+                       accumulation_steps=ACCUMULATION_STEPS,
+                       verbose=TRAIN_VERBOSE,
+                       val_in_epoch=val_iterator,
+                       val_in_epoch_steps=512 // BATCH_SIZE
+                       )
 
     end_time = time.time()
 
