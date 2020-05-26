@@ -354,15 +354,14 @@ DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = OUTPUT_DIM
 HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
-ENC_DROPOUT = 0.5
-DEC_DROPOUT = 0.5
+ENC_DROPOUT = 0
+DEC_DROPOUT = 0.2
 enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
 dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM,
               DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
-"""
 LR = 2
 optimizer = optim.SGD(model.parameters(), lr=LR)
 STEP_SIZE = 300000/(BATCH_SIZE*ACCUMULATION_STEPS)
@@ -374,6 +373,7 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,
 """
 optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
+"""
 
 
 def train(model, iterator, optimizer, criterion, verbose=False, accumulation_steps=1):
@@ -408,7 +408,7 @@ def train(model, iterator, optimizer, criterion, verbose=False, accumulation_ste
         if ((i + 1) % accumulation_steps) == 0:
             optimizer.step()
             optimizer.zero_grad()
-            # scheduler.step()
+            scheduler.step()
 
         epoch_loss += loss.item()
 
