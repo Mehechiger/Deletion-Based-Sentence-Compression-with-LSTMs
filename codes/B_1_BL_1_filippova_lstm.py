@@ -496,7 +496,6 @@ N_EPOCHS = 20
 BEAM_WIDTH = 10
 LP_ALPHA = 1
 
-best_valid_loss = float("inf")
 
 # TODO add checkpoint to google drive (colab) or local (local) at each epoch end
 for epoch in range(N_EPOCHS):
@@ -510,7 +509,7 @@ for epoch in range(N_EPOCHS):
                        verbose=TRAIN_VERBOSE,
                        train_in_epoch=True,
                        val_in_epoch=val_iterator,
-                       in_epoch_steps=512 // BATCH_SIZE
+                       in_epoch_steps=16384 // BATCH_SIZE
                        )
 
     end_time = time.time()
