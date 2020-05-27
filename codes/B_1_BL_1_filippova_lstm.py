@@ -296,30 +296,30 @@ class Seq2Seq(nn.Module):
         for b in range(batch_size):
             beams.append(PriorityQueue())
             beams[b].put(PriorityEntry(-normalize(prob, 1),
-                                       (hidden,
-                                        cell,
-                                        input_,
+                                       (hidden[:, b, :].unsqueeze(1),
+                                        cell[:, b, :].unsqueeze(1),
+                                        input_[b].unsqueeze(0),
                                         prob,
                                         output[b, :].unsqueeze(0)
                                         )
                                        ))
         for t in range(1, max_len):
-            src_ = src[t, :]
             next_beams = []
             for b in range(batch_size):
+                src_ = src[t, b].unsqueeze(0)
                 next_beams.append(PriorityQueue())
                 while beams[b].qsize() > 0:
                     hidden, cell, input_, prob, labels = beams[b].get().data
                     output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                     output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
                     for i in range(output_tops[1].shape[1]):
-                        prob_i = prob + float(output_tops[0][b, i])
+                        prob_i = prob + float(output_tops[0][0, i])
                         next_beams[b].put(PriorityEntry(-normalize(prob_i, t + 1),
                                                         (hidden,
                                                          cell,
                                                          output_tops[1][:, i],
                                                          prob_i,
-                                                         torch.cat((labels, output[b, :].unsqueeze(0)), dim=1)
+                                                         torch.cat((labels, output), dim=1)
                                                          )
                                                         ))
                 for i in range(min(beam_width, next_beams[b].qsize())):
@@ -382,7 +382,7 @@ model.to(DEVICE)
 """
 LR = 2
 optimizer = optim.SGD(model.parameters(), lr=LR)
-STEP_SIZE = 300000/(BATCH_SIZE*ACCUMULATION_STEPS)
+STEP_SIZE = 300000 / (BATCH_SIZE * ACCUMULATION_STEPS)
 GAMMA = 0.96
 scheduler = optim.lr_scheduler.StepLR(optimizer,
                                       step_size=STEP_SIZE,
