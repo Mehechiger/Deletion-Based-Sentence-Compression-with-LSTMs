@@ -173,9 +173,9 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-# train, _ = train.split(split_ratio=0.01)
-# val, _ = val.split(split_ratio=0.005)
-_, val = train.split(split_ratio=0.9995)
+train, _ = train.split(split_ratio=0.001)
+val, _ = val.split(split_ratio=0.005)
+# _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
@@ -288,6 +288,7 @@ class Seq2Seq(nn.Module):
             return prob / lp + cp
 
         max_len = src.shape[0]
+        batch_size = src.shape[1]
         src_ = src[0, :]
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         prob = 0.0
@@ -363,7 +364,6 @@ dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM,
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
-
 """
 LR = 2
 optimizer = optim.SGD(model.parameters(), lr=LR)
@@ -419,10 +419,10 @@ def train(model,
         if ((i + 1) % accumulation_steps) == 0:
             optimizer.step()
             optimizer.zero_grad()
-            #scheduler.step()
+            # scheduler.step()
 
         if train_in_epoch and ((i + 1) % in_epoch_steps) == 0:
-            train_loss, train_res = evaluate(model, [batch,], criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+            train_loss, train_res = evaluate(model, [batch, ], criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
             logger(f"\tVal Loss: {train_loss:.3f} | Val PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
             model.train()
         if val_in_epoch and ((i + 1) % in_epoch_steps) == 0:
