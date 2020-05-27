@@ -197,7 +197,6 @@ BATCH_SIZE = 32
 ACCUMULATION_STEPS = 1
 
 # for batch beam search
-"""
 train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
                                                                     batch_size=BATCH_SIZE,
                                                                     sort=False,
@@ -208,6 +207,7 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
 
 # batch size = 1 for val/test
 val_iterator, test_iterator = BucketIterator.splits((val, test), batch_size=1, sort=False, device=DEVICE)
+"""
 
 
 class PriorityEntry(object):  # prevent queue from comparing data
@@ -292,30 +292,43 @@ class Seq2Seq(nn.Module):
         src_ = src[0, :]
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         prob = 0.0
-        beam = PriorityQueue()
-        beam.put(PriorityEntry(-normalize(prob, 1), (hidden, cell, input_, prob, output)))
+        beams = []
+        for b in range(batch_size):
+            beams.append(PriorityQueue())
+            beams[b].put(PriorityEntry(-normalize(prob, 1),
+                                       (hidden,
+                                        cell,
+                                        input_,
+                                        prob,
+                                        output[b, :].unsqueeze(0)
+                                        )
+                                       ))
         for t in range(1, max_len):
             src_ = src[t, :]
-            next_beam = PriorityQueue()
-            while beam.qsize() > 0:
-                hidden, cell, input_, prob, labels = beam.get().data
-                output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-                output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
-                for i in range(output_tops[1].shape[1]):
-                    prob_i = prob + float(output_tops[0][:, i])
-                    # prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
-                    next_beam.put(PriorityEntry(-normalize(prob_i, t + 1),
-                                                (hidden,
-                                                 cell,
-                                                 output_tops[1][:, i],
-                                                 prob_i,
-                                                 torch.cat((labels, output), dim=1)
-                                                 )
-                                                ))
-            for i in range(min(beam_width, next_beam.qsize())):
-                beam.put(next_beam.get())
-        labels = beam.get().data[4] if beam.qsize() > 0 else None
-        return labels.view(max_len, 1, -1)
+            next_beams = []
+            for b in range(batch_size):
+                next_beams.append(PriorityQueue())
+                while beams[b].qsize() > 0:
+                    hidden, cell, input_, prob, labels = beams[b].get().data
+                    output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+                    output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
+                    for i in range(output_tops[1].shape[1]):
+                        prob_i = prob + float(output_tops[0][b, i])
+                        next_beams[b].put(PriorityEntry(-normalize(prob_i, t + 1),
+                                                        (hidden,
+                                                         cell,
+                                                         output_tops[1][:, i],
+                                                         prob_i,
+                                                         torch.cat((labels, output[b, :].unsqueeze(0)), dim=1)
+                                                         )
+                                                        ))
+                for i in range(min(beam_width, next_beams[b].qsize())):
+                    beams[b].put(next_beams[b].get())
+        labelss = []
+        for b in range(batch_size):
+            labelss.append(beams[b].get().data[4] if beams[b].qsize() > 0 else None)
+        labels = torch.cat(labelss, dim=0)
+        return labels.view(max_len, batch_size, -1)
 
     # for batch beam search
     """
