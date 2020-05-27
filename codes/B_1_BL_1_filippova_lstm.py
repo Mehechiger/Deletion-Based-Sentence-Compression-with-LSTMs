@@ -300,7 +300,7 @@ class Seq2Seq(nn.Module):
                                         cell[:, b, :].contiguous().unsqueeze(1),
                                         input_[b].contiguous().unsqueeze(0),
                                         prob,
-                                        output[b, :]contiguous()..unsqueeze(0)
+                                        output[b, :].contiguous().unsqueeze(0)
                                         )
                                        ))
         for t in range(1, max_len):
