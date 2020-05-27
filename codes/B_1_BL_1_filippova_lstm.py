@@ -298,9 +298,9 @@ class Seq2Seq(nn.Module):
             beams[b].put(PriorityEntry(-normalize(prob, 1),
                                        (hidden[:, b, :].contiguous().unsqueeze(1),
                                         cell[:, b, :].contiguous().unsqueeze(1),
-                                        input_[b].contiguous().unsqueeze(0),
+                                        input_[b].unsqueeze(0),
                                         prob,
-                                        output[b, :].contiguous().unsqueeze(0)
+                                        output[b, :].unsqueeze(0)
                                         )
                                        ))
         for t in range(1, max_len):
