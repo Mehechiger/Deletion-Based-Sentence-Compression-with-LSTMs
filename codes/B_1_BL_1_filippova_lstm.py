@@ -352,10 +352,8 @@ class Seq2Seq(nn.Module):
             for t in range(max_len):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
-                top1 = output.max(1)[1]
                 if t + 1 < max_len:
-                    # input_ = trg[t + 1]
-                    input_ = top1
+                    input_ = trg[t + 1]
                     src_ = src[t + 1]
         else:  # beam predicting mode
             outputs = self.beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
