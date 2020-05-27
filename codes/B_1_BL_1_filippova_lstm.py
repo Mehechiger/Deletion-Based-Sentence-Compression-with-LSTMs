@@ -295,7 +295,7 @@ class Seq2Seq(nn.Module):
         beams = []
         for b in range(batch_size):
             beams.append(PriorityQueue())
-            beams[b].put(PriorityEntry(-normalize(prob, 1),
+            beams[b].put(PriorityEntry(-normalize(prob, lp_alpha),
                                        (hidden[:, b, :].contiguous().unsqueeze(1),
                                         cell[:, b, :].contiguous().unsqueeze(1),
                                         input_[b].unsqueeze(0),
