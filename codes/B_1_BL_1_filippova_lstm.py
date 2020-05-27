@@ -173,7 +173,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.001)
+train, _ = train.split(split_ratio=0.001)
 val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
@@ -296,30 +296,30 @@ class Seq2Seq(nn.Module):
         for b in range(batch_size):
             beams.append(PriorityQueue())
             beams[b].put(PriorityEntry(-normalize(prob, 1),
-                                       (hidden,
-                                        cell,
-                                        input_,
+                                       (hidden[:, b, :].unsqueeze(1),
+                                        cell[:, b, :].unsqueeze(1),
+                                        input_[b].unsqueeze(0),
                                         prob,
                                         output[b, :].unsqueeze(0)
                                         )
                                        ))
         for t in range(1, max_len):
-            src_ = src[t, :]
             next_beams = []
             for b in range(batch_size):
+                src_ = src[t, b].unsqueeze(0)
                 next_beams.append(PriorityQueue())
                 while beams[b].qsize() > 0:
                     hidden, cell, input_, prob, labels = beams[b].get().data
                     output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                     output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
                     for i in range(output_tops[1].shape[1]):
-                        prob_i = prob + float(output_tops[0][b, i])
+                        prob_i = prob + float(output_tops[0][0, i])
                         next_beams[b].put(PriorityEntry(-normalize(prob_i, t + 1),
                                                         (hidden,
                                                          cell,
                                                          output_tops[1][:, i],
                                                          prob_i,
-                                                         torch.cat((labels, output[b, :].unsqueeze(0)), dim=1)
+                                                         torch.cat((labels, output), dim=1)
                                                          )
                                                         ))
                 for i in range(min(beam_width, next_beams[b].qsize())):
@@ -436,7 +436,8 @@ def train(model,
 
         if train_in_epoch and ((i + 1) % in_epoch_steps) == 0:
             train_loss, train_res = evaluate(model, [batch, ], criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
-            logger(f"\tBeam Train Loss: {train_loss:.3f} | Beam Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
+            logger(f"\tBeam Train Loss: {train_loss:.3f} | Beam Train PPL: {math.exp(train_loss):7.3f}",
+                   verbose=VERBOSE)
             model.train()
         if val_in_epoch and ((i + 1) % in_epoch_steps) == 0:
             val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
