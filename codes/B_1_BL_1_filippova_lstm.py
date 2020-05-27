@@ -436,7 +436,7 @@ def train(model,
 
         if train_in_epoch and ((i + 1) % in_epoch_steps) == 0:
             train_loss, train_res = evaluate(model, [batch, ], criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
-            logger(f"\tVal Loss: {train_loss:.3f} | Val PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
+            logger(f"\tBeam Train Loss: {train_loss:.3f} | Beam Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
             model.train()
         if val_in_epoch and ((i + 1) % in_epoch_steps) == 0:
             val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
