@@ -173,9 +173,9 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-# train, _ = train.split(split_ratio=0.01)
-# val, _ = val.split(split_ratio=0.005)
-_, val = train.split(split_ratio=0.9995)
+train, _ = train.split(split_ratio=0.01)
+val, _ = val.split(split_ratio=0.005)
+# _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
@@ -196,8 +196,6 @@ if len(train.examples) + len(val.examples) + len(test.examples) >= 2000:
 BATCH_SIZE = 32
 ACCUMULATION_STEPS = 1
 
-# for batch beam search
-"""
 train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
                                                                     batch_size=BATCH_SIZE,
                                                                     sort=False,
@@ -208,6 +206,7 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
 
 # batch size = 1 for val/test
 val_iterator, test_iterator = BucketIterator.splits((val, test), batch_size=1, sort=False, device=DEVICE)
+"""
 
 
 class PriorityEntry(object):  # prevent queue from comparing data
@@ -292,18 +291,18 @@ class Seq2Seq(nn.Module):
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         prob = 0.0
         beam = PriorityQueue()
-        beam.put(PriorityEntry(-normalize(prob, 1), (hidden, cell, input_, prob, output)))
+        beam.put(PriorityEntry(-normalize(prob, 1, lp_alpha), (hidden, cell, input_, prob, output)))
         for t in range(1, max_len):
             src_ = src[t, :]
             next_beam = PriorityQueue()
             while beam.qsize() > 0:
                 hidden, cell, input_, prob, labels = beam.get().data
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-                output_tops = torch.topk(output, output.shape[1], lp_alpha)  # to get indices
+                output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
                 for i in range(output_tops[1].shape[1]):
                     prob_i = prob + float(output_tops[0][:, i])
                     # prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
-                    next_beam.put(PriorityEntry(-normalize(prob_i, t + 1),
+                    next_beam.put(PriorityEntry(-normalize(prob_i, t + 1, lp_alpha),
                                                 (hidden,
                                                  cell,
                                                  output_tops[1][:, i],
@@ -316,25 +315,55 @@ class Seq2Seq(nn.Module):
         labels = beam.get().data[4] if beam.qsize() > 0 else None
         return labels.view(max_len, 1, -1)
 
-    # for batch beam search
-    """
-    def batch_beam_predict(self, beam_width, src, input_, hidden, cell):
+    def batch_beam_predict(self, src, input_, hidden, cell, beam_width, lp_alpha=1):
+        def normalize(prob, l, alpha=lp_alpha):
+            return prob
+            lp = (5 + l) ** alpha / 6 ** alpha
+            cp = 0  # coverage penalty - for attention mechanism
+            return prob / lp + cp
+
+        max_len = src.shape[0]
+        batch_size = src.shape[1]
+        output_dim = self.decoder.output_dim
+        input_ = input_.repeat(beam_width)
+        src_ = src[0, :].repeat(beam_width)
         hidden = hidden.repeat(1, beam_width, 1)
         cell = cell.repeat(1, beam_width, 1)
-        input_ = input_.view(1, -1)
-        pass
-    """
+        output, hidden, cell = self.decoder(src_, input_, hidden, cell)
 
-    def forward(self, src, trg, beam_width):
-        batch_size = trg.shape[1]
-        max_len = trg.shape[0]
-        trg_vocab_size = self.decoder.output_dim
+        outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
+
+        for t in range(1, max_len):
+            output = torch.cat(torch.chunk(output, beam_width, dim=0), dim=1)
+            top_indices = torch.topk(normalize(output, t + 1, lp_alpha), beam_width, 1).indices.t().reshape(-1)
+
+            beam_indices = top_indices // output_dim * batch_size
+            top_indices = top_indices % output_dim
+            beam_indices = (beam_indices + top_indices).unsqueeze(0).unsqueeze(2).repeat(hidden.shape[0],
+                                                                                         1,
+                                                                                         hidden.shape[2]
+                                                                                         )
+
+            hidden = torch.gather(hidden, dim=1, index=beam_indices)
+            cell = torch.gather(cell, dim=1, index=beam_indices)
+
+            input_ = top_indices
+            src_ = src[t, :].repeat(beam_width)
+
+            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+
+            outputs[t] = output[:batch_size, :]
+        return outputs
+
+    def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         input_ = trg[0, :]
-        src_ = src[0, :]
-        if not beam_width:  # teacher forcing mode
-            outputs = torch.zeros(max_len, batch_size,
-                                  trg_vocab_size).to(self.device)
+        if teacher_force:  # teacher forcing mode
+            batch_size = trg.shape[1]
+            max_len = trg.shape[0]
+            output_dim = self.decoder.output_dim
+            src_ = src[0, :]
+            outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
@@ -342,9 +371,8 @@ class Seq2Seq(nn.Module):
                     input_ = trg[t + 1]
                     src_ = src[t + 1]
         else:  # beam predicting mode
-            outputs = self.beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
-            # for batch beam search
-            # outputs = self.batch_beam_predict(beam_width, src, input_, hidden, cell)
+            # outputs = self.beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
+            outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
 
@@ -362,7 +390,6 @@ dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM,
               DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
-
 
 """
 LR = 2
@@ -383,6 +410,7 @@ def train(model,
           optimizer,
           criterion,
           accumulation_steps,
+          beam_width,
           verbose=False,
           val_in_epoch=None,
           in_epoch_steps=None
@@ -395,7 +423,7 @@ def train(model,
         trg = batch.compressed
 
         try:
-            output = model(src, trg, None)
+            output = model(src, trg, beam_width, True)
         except RuntimeError as exception:
             if "out of memory" in str(exception):
                 print("WARNING: out of memory")
@@ -418,7 +446,7 @@ def train(model,
         if ((i + 1) % accumulation_steps) == 0:
             optimizer.step()
             optimizer.zero_grad()
-            #scheduler.step()
+            # scheduler.step()
 
         if val_in_epoch and ((i + 1) % in_epoch_steps) == 0:
             val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
@@ -441,7 +469,7 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
             trg = batch.compressed
 
             try:
-                output = model(src, trg, beam_width)
+                output = model(src, trg, beam_width, False)
             except RuntimeError as exception:
                 if "out of memory" in str(exception):
                     print("WARNING: out of memory")
@@ -487,6 +515,7 @@ for epoch in range(N_EPOCHS):
                        optimizer,
                        criterion,
                        accumulation_steps=ACCUMULATION_STEPS,
+                       beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
                        val_in_epoch=val_iterator,
                        in_epoch_steps=512 // BATCH_SIZE
