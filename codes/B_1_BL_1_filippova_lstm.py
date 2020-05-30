@@ -173,7 +173,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-# train, _ = train.split(split_ratio=0.01)
+train, _ = train.split(split_ratio=0.01)
 # val, _ = val.split(split_ratio=0.005)
 _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
@@ -301,7 +301,8 @@ class Seq2Seq(nn.Module):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 output_tops = torch.topk(output, output.shape[1], lp_alpha)  # to get indices
                 for i in range(output_tops[1].shape[1]):
-                    prob_i = prob + float(output_tops[0][:, i])
+                    #prob_i = prob + float(output_tops[0][:, i])
+                    prob_i = float(output_tops[0][:, i])
                     # prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
                     next_beam.put(PriorityEntry(-normalize(prob_i, t + 1),
                                                 (hidden,
