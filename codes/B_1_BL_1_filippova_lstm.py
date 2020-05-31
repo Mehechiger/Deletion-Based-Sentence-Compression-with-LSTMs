@@ -167,13 +167,13 @@ test = TabularDataset(
 )
 give_label(test)
 
-ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.25d", vectors_cache=VECTORS_CACHE)
 COMPR.build_vocab(train, min_freq=1)
 
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
@@ -269,7 +269,7 @@ class Decoder(nn.Module):
         input_ = input_.unsqueeze(0)
         src = src.unsqueeze(0)
         embedded = self.embedding_src(src)
-        embedded = torch.cat((embedded, self.embedding_input(input_)), axis=2)
+        embedded = torch.cat((embedded, self.embedding_input(input_)), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
