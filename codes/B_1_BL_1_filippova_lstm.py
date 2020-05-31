@@ -58,7 +58,7 @@ def logger(*content, verbose=False, path_log=PATH_LOG):
 # 3 = print and write
 # 4, None, False, 0 = clear log file
 VERBOSE = 3
-TRAIN_VERBOSE = 1
+TRAIN_VERBOSE = 2
 VAL_VERBOSE = 2
 TEST_VERBOSE = 3
 
