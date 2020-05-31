@@ -173,7 +173,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
+train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
@@ -280,41 +280,6 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def beam_predict(self, src, input_, hidden, cell, beam_width, lp_alpha=1):
-        def normalize(prob, l, alpha=lp_alpha):
-            lp = (5 + l) ** alpha / 6 ** alpha
-            cp = 0  # coverage penalty - for attention mechanism
-            return prob / lp + cp
-
-        max_len = src.shape[0]
-        src_ = src[0, :]
-        output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-        prob = 0.0
-        beam = PriorityQueue()
-        beam.put(PriorityEntry(-normalize(prob, 1, lp_alpha), (hidden, cell, input_, prob, output)))
-        for t in range(1, max_len):
-            src_ = src[t, :]
-            next_beam = PriorityQueue()
-            while beam.qsize() > 0:
-                hidden, cell, input_, prob, labels = beam.get().data
-                output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-                output_tops = torch.topk(output, output.shape[1], 1)  # to get indices
-                for i in range(output_tops[1].shape[1]):
-                    prob_i = prob + float(output_tops[0][:, i])
-                    # prob_i = (prob * t + float(output_tops[0][:, i])) / (t + 1)
-                    next_beam.put(PriorityEntry(-normalize(prob_i, t + 1, lp_alpha),
-                                                (hidden,
-                                                 cell,
-                                                 output_tops[1][:, i],
-                                                 prob_i,
-                                                 torch.cat((labels, output), dim=1)
-                                                 )
-                                                ))
-            for i in range(min(beam_width, next_beam.qsize())):
-                beam.put(next_beam.get())
-        labels = beam.get().data[4] if beam.qsize() > 0 else None
-        return labels.view(max_len, 1, -1)
-
     def batch_beam_predict(self, src, input_, hidden, cell, beam_width, lp_alpha=1):
         def normalize(prob, l, alpha=lp_alpha):
             return prob
@@ -332,11 +297,11 @@ class Seq2Seq(nn.Module):
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
 
         outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
+        outputs[0, :, :] = output
         backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
         backtrack[0, :, :] = output.topk(k=1, dim=1).indices
 
         for t in range(1, max_len):
-            # probs = torch.topk(outputs[:t, :, :], k=1, dim=2).values.sum(dim=0).repeat(1, output_dim)
             probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
             probs += output
             probs = torch.cat(probs.chunk(beam_width, dim=0), dim=1)
@@ -365,42 +330,6 @@ class Seq2Seq(nn.Module):
                 src_ = src[t, :].repeat(beam_width)
 
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-            """
-            outputs[t] = output
-            top_indices = torch.topk(normalize(torch.sum(outputs, dim=0),
-                                               t + 1,
-                                               lp_alpha
-                                               ),
-                                     k=1,
-                                     dim=1
-                                     ).indices.view(-1)
-            output = torch.gather(output, dim=1, index=top_indices)
-
-            print()
-            output = torch.cat(torch.chunk(output, beam_width, dim=0), dim=1)
-            top_indices = torch.topk(normalize(output, t + 1, lp_alpha), output.shape[1], 1).indices
-            output = torch.gather(output, dim=1, index=top_indices)
-            print()
-
-            # top_indices = torch.topk(normalize(output, t + 1, lp_alpha), beam_width, 1).indices.t().reshape(-1)
-
-            beam_indices = top_indices // output_dim * batch_size
-            top_indices = top_indices % output_dim
-            beam_indices = (beam_indices + top_indices).unsqueeze(0).unsqueeze(2).repeat(hidden.shape[0],
-                                                                                         1,
-                                                                                         hidden.shape[2]
-                                                                                         )
-
-            hidden = torch.gather(hidden, dim=1, index=beam_indices)
-            cell = torch.gather(cell, dim=1, index=beam_indices)
-
-            input_ = top_indices
-            src_ = src[t, :].repeat(beam_width)
-
-            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-
-            outputs[t] = output[:batch_size, :]
-            """
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
@@ -418,8 +347,7 @@ class Seq2Seq(nn.Module):
                 if t + 1 < max_len:
                     input_ = trg[t + 1]
                     src_ = src[t + 1]
-        else:  # beam predicting mode
-            # outputs = self.beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
+        else:
             outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
