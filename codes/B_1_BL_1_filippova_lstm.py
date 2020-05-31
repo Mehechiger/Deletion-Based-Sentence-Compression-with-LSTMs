@@ -497,7 +497,7 @@ for epoch in range(N_EPOCHS):
                        beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
                        val_in_epoch=val_iterator,
-                       in_epoch_steps=512 // BATCH_SIZE
+                       in_epoch_steps=16384 // BATCH_SIZE
                        )
 
     end_time = time.time()
