@@ -173,7 +173,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.01)
 val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
@@ -401,7 +401,7 @@ class Seq2Seq(nn.Module):
 
             outputs[t] = output[:batch_size, :]
             """
-        return outputs[:, batch_size, :]
+        return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
