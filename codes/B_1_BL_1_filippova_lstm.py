@@ -301,7 +301,12 @@ class Seq2Seq(nn.Module):
         backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
         backtrack[0, :, :] = output.topk(k=1, dim=1).indices
 
+        input_ = output.topk(k=1, dim=1).indices
+
         for t in range(1, max_len):
+            src_ = src[t, :].repeat(beam_width)
+            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+
             probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
             probs += output
             probs = torch.cat(probs.chunk(beam_width, dim=0), dim=1)
@@ -320,34 +325,39 @@ class Seq2Seq(nn.Module):
             outputs_beams = beams.repeat(t, 1, output_dim)
             outputs[:t, :, :] = outputs[:t, :, :].gather(dim=1, index=outputs_beams)
             outputs[t, :, :] = output.gather(dim=0, index=outputs_beams[0, :, :])
-            if t < max_len:
+            if t + 1 < max_len:
                 backtrack[:t, :, :] = backtrack[:t, :, :].gather(dim=1, index=outputs_beams[:, :, :1])
 
                 top_indices = top_indices.fmod(output_dim).t().reshape(-1)
                 backtrack[t, :, 0] = top_indices
 
                 input_ = top_indices
-                src_ = src[t, :].repeat(beam_width)
+            # src_ = src[t, :].repeat(beam_width)
 
-                output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+            # output, hidden, cell = self.decoder(src_, input_, hidden, cell)
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
-        input_ = trg[0, :]
+        # input_ = trg[0, :]
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
             max_len = trg.shape[0]
             output_dim = self.decoder.output_dim
-            src_ = src[0, :]
+            # src_ = src[0, :]
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
+                src_ = src[t, :]
+                input_ = trg[t, :]
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
+                """
                 if t + 1 < max_len:
                     input_ = trg[t + 1]
                     src_ = src[t + 1]
+                """
         else:
+            input_ = trg[0, :]
             outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
