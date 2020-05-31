@@ -173,7 +173,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
+train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
@@ -331,11 +331,58 @@ class Seq2Seq(nn.Module):
         cell = cell.repeat(1, beam_width, 1)
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
 
-        outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
+        outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
+        backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
+        backtrack[0, :, :] = output.topk(k=1, dim=1).indices
 
         for t in range(1, max_len):
+            # probs = torch.topk(outputs[:t, :, :], k=1, dim=2).values.sum(dim=0).repeat(1, output_dim)
+            probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
+            probs += output
+            probs = torch.cat(probs.chunk(beam_width, dim=0), dim=1)
+            probs = normalize(probs, t, lp_alpha)
+            top_indices = probs.topk(k=beam_width, dim=1).indices
+
+            beams = top_indices // output_dim
+            beams = beams.t().reshape(-1)
+            beams = beams * batch_size + torch.LongTensor(range(batch_size)).repeat(beam_width).to(self.device)
+            beams = beams.unsqueeze(0).unsqueeze(2)
+
+            states_beams = beams.repeat(hidden.shape[0], 1, hidden.shape[2])
+            hidden = hidden.gather(dim=1, index=states_beams)
+            cell = cell.gather(dim=1, index=states_beams)
+
+            outputs_beams = beams.repeat(t, 1, output_dim)
+            outputs[:t, :, :] = outputs[:t, :, :].gather(dim=1, index=outputs_beams)
+            outputs[t, :, :] = output.gather(dim=0, index=outputs_beams[0, :, :])
+            if t < max_len:
+                backtrack[:t, :, :] = backtrack[:t, :, :].gather(dim=1, index=outputs_beams[:, :, :1])
+
+                top_indices = top_indices.fmod(output_dim).t().reshape(-1)
+                backtrack[t, :, 0] = top_indices
+
+                input_ = top_indices
+                src_ = src[t, :].repeat(beam_width)
+
+                output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+            """
+            outputs[t] = output
+            top_indices = torch.topk(normalize(torch.sum(outputs, dim=0),
+                                               t + 1,
+                                               lp_alpha
+                                               ),
+                                     k=1,
+                                     dim=1
+                                     ).indices.view(-1)
+            output = torch.gather(output, dim=1, index=top_indices)
+
+            print()
             output = torch.cat(torch.chunk(output, beam_width, dim=0), dim=1)
-            top_indices = torch.topk(normalize(output, t + 1, lp_alpha), beam_width, 1).indices.t().reshape(-1)
+            top_indices = torch.topk(normalize(output, t + 1, lp_alpha), output.shape[1], 1).indices
+            output = torch.gather(output, dim=1, index=top_indices)
+            print()
+
+            # top_indices = torch.topk(normalize(output, t + 1, lp_alpha), beam_width, 1).indices.t().reshape(-1)
 
             beam_indices = top_indices // output_dim * batch_size
             top_indices = top_indices % output_dim
@@ -353,7 +400,8 @@ class Seq2Seq(nn.Module):
             output, hidden, cell = self.decoder(src_, input_, hidden, cell)
 
             outputs[t] = output[:batch_size, :]
-        return outputs
+            """
+        return outputs[:, batch_size, :]
 
     def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
@@ -403,6 +451,10 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,
 """
 optimizer = optim.Adam(model.parameters())
 criterion = nn.NLLLoss()
+
+
+# TODO choose better loss func for seq2seq + beamsearch
+# - NLLLoss can't reflect beam search's corrections over time step
 
 
 def train(model,
