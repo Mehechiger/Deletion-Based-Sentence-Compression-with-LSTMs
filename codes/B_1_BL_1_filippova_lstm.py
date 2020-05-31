@@ -58,7 +58,7 @@ def logger(*content, verbose=False, path_log=PATH_LOG):
 # 3 = print and write
 # 4, None, False, 0 = clear log file
 VERBOSE = 3
-TRAIN_VERBOSE = 2
+TRAIN_VERBOSE = 1
 VAL_VERBOSE = 2
 TEST_VERBOSE = 3
 
@@ -173,7 +173,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-train, _ = train.split(split_ratio=0.01)
+#train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.05)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.05)
