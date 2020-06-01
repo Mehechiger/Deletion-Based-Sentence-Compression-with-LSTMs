@@ -13,7 +13,7 @@ import os
 import time
 import math
 import json
-import spacy  # lemmatization
+#import spacy  # lemmatization
 import torch
 import torch.nn as nn
 from torch import optim
@@ -71,11 +71,11 @@ logger(None, verbose=4)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
-SpaCy_EN = spacy.load("en_core_web_sm")  # lemmatization
+#SpaCy_EN = spacy.load("en_core_web_sm")  # lemmatization
 
 
 def splitter(text):
-    return [tok.lemma_ for tok in SpaCy_EN.tokenizer(text)]  # lemmatization
+    #return [tok.lemma_ for tok in SpaCy_EN.tokenizer(text)]  # lemmatization
     return text.split(" ")
 
 
