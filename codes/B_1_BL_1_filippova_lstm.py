@@ -486,7 +486,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-CLIP = 1  # TODO adjust clip value
+CLIP = float("inf")  # TODO adjust clip value
 BEAM_WIDTH = 10
 LP_ALPHA = 1
 
