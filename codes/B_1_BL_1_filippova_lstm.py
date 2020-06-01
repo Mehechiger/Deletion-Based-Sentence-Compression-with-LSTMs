@@ -229,18 +229,13 @@ class PriorityEntry(object):  # prevent queue from comparing data
 
 
 class Encoder(nn.Module):
-    # def __init__(self, input_dim, emb_dim, hid_dim, n_layers, dropout):
-    def __init__(self, input_dim, pretrained_vectors, hid_dim, n_layers, dropout):
+    def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
-        self.input_dim = input_dim
-        # self.emb_dim = emb_dim
         self.emb_dim = pretrained_vectors.shape[1]
         self.hid_dim = hid_dim
         self.n_layers = n_layers
 
-        # self.embedding = nn.Embedding(input_dim, emb_dim)
         self.embedding = nn.Embedding.from_pretrained(pretrained_vectors)
-        # self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
         self.rnn = nn.LSTM(self.emb_dim, hid_dim, n_layers, dropout=dropout)
 
     def forward(self, src):
@@ -250,11 +245,9 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    # def __init__(self, input_dim, output_dim, emb_src_dim, emb_input_dim, hid_dim, n_layers, dropout, device):
-    def __init__(self, input_dim, output_dim, pretrained_vectors, emb_input_dim, hid_dim, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, emb_input_dim, hid_dim, n_layers, dropout, device):
         super().__init__()
 
-        # self.emb_src_dim = emb_src_dim
         self.emb_src_dim = pretrained_vectors.shape[1]
         self.emb_input_dim = emb_input_dim
         self.hid_dim = hid_dim
@@ -262,7 +255,6 @@ class Decoder(nn.Module):
         self.n_layers = n_layers
         self.device = device
 
-        # self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
         self.embedding_input = lambda l: torch.eye(
             emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
@@ -365,7 +357,6 @@ class Seq2Seq(nn.Module):
 
 INPUT_DIM = len(ORIG.vocab)
 OUTPUT_DIM = len(COMPR.vocab)
-# ENC_EMB_DIM = 256
 ENC_EMB_DIM = ORIG.vocab.vectors.shape[1]
 DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = OUTPUT_DIM
@@ -373,10 +364,8 @@ HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
-# enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-enc = Encoder(INPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
-# dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
-dec = Decoder(INPUT_DIM, OUTPUT_DIM, ORIG.vocab.vectors, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+enc = Encoder(ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
