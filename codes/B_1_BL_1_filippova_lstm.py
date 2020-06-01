@@ -167,13 +167,13 @@ test = TabularDataset(
 )
 give_label(test)
 
-ORIG.build_vocab(train, min_freq=1, vectors="glove.6B.50d", vectors_cache=VECTORS_CACHE)
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 COMPR.build_vocab(train, min_freq=1)
 
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.005)
@@ -396,6 +396,7 @@ def train(model,
           iterator,
           optimizer,
           criterion,
+          clip,
           accumulation_steps,
           beam_width,
           verbose=False,
@@ -431,6 +432,7 @@ def train(model,
         loss.backward()
 
         if ((i + 1) % accumulation_steps) == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
             optimizer.step()
             optimizer.zero_grad()
             # scheduler.step()
@@ -488,6 +490,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
+CLIP = 1
 BEAM_WIDTH = 10
 LP_ALPHA = 1
 
@@ -502,6 +505,7 @@ for epoch in range(N_EPOCHS):
                        train_iterator,
                        optimizer,
                        criterion,
+                       CLIP,
                        accumulation_steps=ACCUMULATION_STEPS,
                        beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
