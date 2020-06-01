@@ -179,10 +179,10 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
-val, _ = val.split(split_ratio=0.05)
+train, _ = train.split(split_ratio=0.0001)
+val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
-test, _ = test.split(split_ratio=0.05)
+test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
 """
@@ -344,11 +344,9 @@ class Seq2Seq(nn.Module):
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
                 src_ = src[t, :]
-                input_ = trg[t, :]
                 output, hidden, cell = self.decoder(src_, hidden, cell)
                 outputs[t] = output
         else:
-            input_ = trg[0, :]
             outputs = self.batch_beam_predict(src, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
