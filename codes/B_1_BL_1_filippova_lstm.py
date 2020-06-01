@@ -171,7 +171,7 @@ test = TabularDataset(
 )
 give_label(test)
 
-ORIG.build_vocab(train, min_freq=10, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 # zeros = (ORIG.vocab.vectors.sum(dim=1) == 0).sum()
 # checked number of words init at all 0: 32292 out of 106838
 COMPR.build_vocab(train, min_freq=1)
@@ -229,13 +229,18 @@ class PriorityEntry(object):  # prevent queue from comparing data
 
 
 class Encoder(nn.Module):
-    def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
+    # def __init__(self, input_dim, emb_dim, hid_dim, n_layers, dropout):
+    def __init__(self, input_dim, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
+        self.input_dim = input_dim
+        # self.emb_dim = emb_dim
         self.emb_dim = pretrained_vectors.shape[1]
         self.hid_dim = hid_dim
         self.n_layers = n_layers
 
+        # self.embedding = nn.Embedding(input_dim, emb_dim)
         self.embedding = nn.Embedding.from_pretrained(pretrained_vectors)
+        # self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
         self.rnn = nn.LSTM(self.emb_dim, hid_dim, n_layers, dropout=dropout)
 
     def forward(self, src):
@@ -245,29 +250,26 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, emb_input_dim, hid_dim, n_layers, dropout, device):
+    # def __init__(self, input_dim, output_dim, emb_src_dim, emb_input_dim, hid_dim, n_layers, dropout, device):
+    def __init__(self, input_dim, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
         super().__init__()
 
+        # self.emb_src_dim = emb_src_dim
         self.emb_src_dim = pretrained_vectors.shape[1]
-        self.emb_input_dim = emb_input_dim
         self.hid_dim = hid_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
         self.device = device
 
+        # self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.embedding_input = lambda l: torch.eye(
-            emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
-        self.rnn = nn.LSTM(self.emb_src_dim + emb_input_dim,
-                           hid_dim, n_layers, dropout=dropout)
+        self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
         self.out = nn.Linear(hid_dim, output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, src, input_, hidden, cell):
-        input_ = input_.unsqueeze(0)
+    def forward(self, src, hidden, cell):
         src = src.unsqueeze(0)
         embedded = self.embedding_src(src)
-        embedded = torch.cat((embedded, self.embedding_input(input_)), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
@@ -284,7 +286,7 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def batch_beam_predict(self, src, input_, hidden, cell, beam_width, lp_alpha=1):
+    def batch_beam_predict(self, src, hidden, cell, beam_width, lp_alpha=1):
         def normalize(prob, l, alpha=lp_alpha):
             lp = (5 + l) ** alpha / 6 ** alpha
             cp = 0  # coverage penalty - for attention mechanism
@@ -293,22 +295,19 @@ class Seq2Seq(nn.Module):
         max_len = src.shape[0]
         batch_size = src.shape[1]
         output_dim = self.decoder.output_dim
-        input_ = input_.repeat(beam_width)
         src_ = src[0, :].repeat(beam_width)
         hidden = hidden.repeat(1, beam_width, 1)
         cell = cell.repeat(1, beam_width, 1)
-        output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+        output, hidden, cell = self.decoder(src_, hidden, cell)
 
         outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
         outputs[0, :, :] = output
         backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
         backtrack[0, :, :] = output.topk(k=1, dim=1).indices
 
-        input_ = output.topk(k=1, dim=1).indices
-
         for t in range(1, max_len):
             src_ = src[t, :].repeat(beam_width)
-            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+            output, hidden, cell = self.decoder(src_, hidden, cell)
 
             probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
             probs += output
@@ -334,7 +333,6 @@ class Seq2Seq(nn.Module):
                 top_indices = top_indices.fmod(output_dim).t().reshape(-1)
                 backtrack[t, :, 0] = top_indices
 
-                input_ = top_indices
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
@@ -347,16 +345,17 @@ class Seq2Seq(nn.Module):
             for t in range(max_len):
                 src_ = src[t, :]
                 input_ = trg[t, :]
-                output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+                output, hidden, cell = self.decoder(src_, hidden, cell)
                 outputs[t] = output
         else:
             input_ = trg[0, :]
-            outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
+            outputs = self.batch_beam_predict(src, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
 
 INPUT_DIM = len(ORIG.vocab)
 OUTPUT_DIM = len(COMPR.vocab)
+# ENC_EMB_DIM = 256
 ENC_EMB_DIM = ORIG.vocab.vectors.shape[1]
 DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = OUTPUT_DIM
@@ -364,8 +363,10 @@ HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
-enc = Encoder(ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+# enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+enc = Encoder(INPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
+# dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+dec = Decoder(INPUT_DIM, OUTPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
