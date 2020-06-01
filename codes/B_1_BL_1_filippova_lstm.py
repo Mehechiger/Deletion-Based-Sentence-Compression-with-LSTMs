@@ -239,7 +239,7 @@ class Encoder(nn.Module):
         self.n_layers = n_layers
 
         # self.embedding = nn.Embedding(input_dim, emb_dim)
-        self.embedding = nn.Embedding.from_pretrained(pretrained_vectors)
+        self.embedding = nn.Embedding.from_pretrained(pretrained_vectors, freeze=True)
         # self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
         self.rnn = nn.LSTM(self.emb_dim, hid_dim, n_layers, dropout=dropout)
 
@@ -262,7 +262,7 @@ class Decoder(nn.Module):
         self.device = device
 
         # self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
-        self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
+        self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors, freeze=True)
         self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
         self.out = nn.Linear(hid_dim, output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
