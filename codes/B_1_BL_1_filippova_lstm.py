@@ -12,8 +12,8 @@
 import os
 import time
 import math
-from queue import PriorityQueue
 import json
+import spacy  # lemmatization
 import torch
 import torch.nn as nn
 from torch import optim
@@ -71,8 +71,11 @@ logger(None, verbose=4)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
+SpaCy_EN = spacy.load("en_core_web_sm")  # lemmatization
+
 
 def splitter(text):
+    return [tok.lemma_ for tok in SpaCy_EN.tokenizer(text)]  # lemmatization
     return text.split(" ")
 
 
@@ -168,6 +171,8 @@ test = TabularDataset(
 give_label(test)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+#zeros = (ORIG.vocab.vectors.sum(dim=1) == 0).sum()
+# checked number of words init at all 0: 32292 out of 106838
 COMPR.build_vocab(train, min_freq=1)
 
 """
@@ -490,7 +495,7 @@ def epoch_time(start_time, end_time):
 
 
 N_EPOCHS = 20
-CLIP = 1
+CLIP = 1  # TODO adjust clip value
 BEAM_WIDTH = 10
 LP_ALPHA = 1
 
