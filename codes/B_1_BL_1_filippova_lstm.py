@@ -179,10 +179,10 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
-val, _ = val.split(split_ratio=0.05)
+train, _ = train.split(split_ratio=0.0001)
+val, _ = val.split(split_ratio=0.005)
 # _, val = train.split(split_ratio=0.9995)
-test, _ = test.split(split_ratio=0.05)
+test, _ = test.split(split_ratio=0.005)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
 """
@@ -239,7 +239,7 @@ class Encoder(nn.Module):
         self.n_layers = n_layers
 
         # self.embedding = nn.Embedding(input_dim, emb_dim)
-        self.embedding = nn.Embedding.from_pretrained(pretrained_vectors)
+        self.embedding = nn.Embedding.from_pretrained(pretrained_vectors, freeze=True)
         # self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
         self.rnn = nn.LSTM(self.emb_dim, hid_dim, n_layers, dropout=dropout)
 
