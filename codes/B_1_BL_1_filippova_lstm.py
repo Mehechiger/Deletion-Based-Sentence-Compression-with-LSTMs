@@ -171,7 +171,7 @@ test = TabularDataset(
 )
 give_label(test)
 
-ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+ORIG.build_vocab(train, min_freq=10, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 # zeros = (ORIG.vocab.vectors.sum(dim=1) == 0).sum()
 # checked number of words init at all 0: 32292 out of 106838
 COMPR.build_vocab(train, min_freq=1)
