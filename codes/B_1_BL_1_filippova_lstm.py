@@ -475,6 +475,7 @@ if checkpoints:
     checkpoint = torch.load(PATH_OUTPUT + checkpoints[-1])
     start_epoch = checkpoint['epoch'] + 1
     best_val_loss = checkpoint['best_val_loss']
+    best_epoch = checkpoint['best_epoch']
     useless_epochs = checkpoint['useless_epochs']
     val_losses = checkpoint['val_losses']
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -482,6 +483,7 @@ if checkpoints:
 else:
     start_epoch = 0
     best_val_loss = float("inf")
+    best_epoch = 0
     useless_epochs = 0
     val_losses = []
 
@@ -518,27 +520,30 @@ for epoch in range(start_epoch, N_EPOCHS):
     torch.save({
         'epoch': epoch,
         'best_val_loss': best_val_loss,
+        'best_epoch': best_epoch,
         'useless_epochs': useless_epochs,
         'val_losses': val_losses,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
     }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
 
-    if best_val_loss - val_loss < 0.001:
-        useless_epochs += 1
+    if val_loss<best_val_loss:
+        best_val_loss=val_loss
+        best_epoch=epoch
+        if best_val_loss-val_loss>=0.001:
+            useless_epochs=0
+        else:
+            useless_epochs+=1
     else:
-        best_val_loss = val_loss
-        useless_epochs = 0
+        useless_epochs+=1
+
+    logger('\nbest epoch so far at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss), verbose=TEST_VERBOSE)
+
     if useless_epochs > 5 or epoch == N_EPOCHS - 1:
-        v_min, i_min = sorted((v, i) for i, v in enumerate(val_losses))[0]
-        if val_loss > v_min:
-            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(i_min + 1) + '.pt')
-            best_epoch = checkpoint['epoch']
-            best_val_loss = checkpoint['best_val_loss']
+        if val_loss > best_val_loss:
+            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        else:
-            best_epoch = epoch
         break
 
     # update AFFIX if necessary
@@ -546,8 +551,7 @@ for epoch in range(start_epoch, N_EPOCHS):
         AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
         logger(None, verbose=4)
 
-logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
-       verbose=TEST_VERBOSE)
+logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss), verbose=TEST_VERBOSE)
 
 test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
 res_outputter(test_res, "test_res")
