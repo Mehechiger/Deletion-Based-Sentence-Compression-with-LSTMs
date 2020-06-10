@@ -527,17 +527,18 @@ for epoch in range(start_epoch, N_EPOCHS):
         'optimizer_state_dict': optimizer.state_dict()
     }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
 
-    if val_loss<best_val_loss:
-        best_val_loss=val_loss
-        best_epoch=epoch
-        if best_val_loss-val_loss>=0.001:
-            useless_epochs=0
+    if val_loss < best_val_loss:
+        if best_val_loss - val_loss >= 0.001:
+            useless_epochs = 0
         else:
-            useless_epochs+=1
+            useless_epochs += 1
+        best_val_loss = val_loss
+        best_epoch = epoch
     else:
-        useless_epochs+=1
+        useless_epochs += 1
 
-    logger('\nbest epoch so far at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss), verbose=TEST_VERBOSE)
+    logger('\nbest epoch so far at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
+           verbose=TEST_VERBOSE)
 
     if useless_epochs > 5 or epoch == N_EPOCHS - 1:
         if val_loss > best_val_loss:
@@ -551,7 +552,8 @@ for epoch in range(start_epoch, N_EPOCHS):
         AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
         logger(None, verbose=4)
 
-logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss), verbose=TEST_VERBOSE)
+logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
+       verbose=TEST_VERBOSE)
 
 test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
 res_outputter(test_res, "test_res")
