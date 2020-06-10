@@ -3,7 +3,7 @@
 # gpu performance improvement: https://zhuanlan.zhihu.com/p/65002487
 # beam search:
 # - priority queue: github.com/budzianowski/PyTorch-Beam-Search-Decoding
-# - TODO batch beam search: https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
+# - batch beam search: https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
 # - beam search prob normalizations:
 # - - https://www.youtube.com/watch?v=gb__z7LlN_4
 # - - https://opennmt.net/OpenNMT/translation/beam_search/
@@ -13,7 +13,6 @@ import os
 import time
 import math
 import json
-# import spacy  # lemmatization
 import torch
 import torch.nn as nn
 from torch import optim
@@ -72,11 +71,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
 
-# SpaCy_EN = spacy.load("en_core_web_sm")  # lemmatization
-
-
 def splitter(text):
-    # return [tok.lemma_ for tok in SpaCy_EN.tokenizer(text)]  # lemmatization
     return text.split(" ")
 
 
@@ -172,14 +167,12 @@ test = TabularDataset(
 give_label(test)
 
 ORIG.build_vocab(train, min_freq=10, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
-# zeros = (ORIG.vocab.vectors.sum(dim=1) == 0).sum()
-# checked number of words init at all 0: 32292 out of 106838
 COMPR.build_vocab(train, min_freq=1)
 
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+# train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.05)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.05)
@@ -207,12 +200,6 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
                                                                     sort=False,
                                                                     device=DEVICE
                                                                     )
-"""
-(train_iterator,) = BucketIterator.splits((train,), batch_size=BATCH_SIZE, sort=False, device=DEVICE)
-
-# batch size = 1 for val/test
-val_iterator, test_iterator = BucketIterator.splits((val, test), batch_size=1, sort=False, device=DEVICE)
-"""
 
 
 class PriorityEntry(object):  # prevent queue from comparing data
@@ -229,18 +216,14 @@ class PriorityEntry(object):  # prevent queue from comparing data
 
 
 class Encoder(nn.Module):
-    # def __init__(self, input_dim, emb_dim, hid_dim, n_layers, dropout):
     def __init__(self, input_dim, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
         self.input_dim = input_dim
-        # self.emb_dim = emb_dim
         self.emb_dim = pretrained_vectors.shape[1]
         self.hid_dim = hid_dim
         self.n_layers = n_layers
 
-        # self.embedding = nn.Embedding(input_dim, emb_dim)
-        self.embedding = nn.Embedding.from_pretrained(pretrained_vectors, freeze=True)
-        # self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
+        self.embedding = nn.Embedding.from_pretrained(pretrained_vectors)
         self.rnn = nn.LSTM(self.emb_dim, hid_dim, n_layers, dropout=dropout)
 
     def forward(self, src):
@@ -250,19 +233,16 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    # def __init__(self, input_dim, output_dim, emb_src_dim, emb_input_dim, hid_dim, n_layers, dropout, device):
-    def __init__(self, input_dim, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
         super().__init__()
 
-        # self.emb_src_dim = emb_src_dim
         self.emb_src_dim = pretrained_vectors.shape[1]
         self.hid_dim = hid_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
         self.device = device
 
-        # self.embedding_src = nn.Embedding(input_dim, emb_src_dim)
-        self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors, freeze=True)
+        self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
         self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
         self.out = nn.Linear(hid_dim, output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
@@ -353,7 +333,6 @@ class Seq2Seq(nn.Module):
 
 INPUT_DIM = len(ORIG.vocab)
 OUTPUT_DIM = len(COMPR.vocab)
-# ENC_EMB_DIM = 256
 ENC_EMB_DIM = ORIG.vocab.vectors.shape[1]
 DEC_EMB_SRC_DIM = 256
 DEC_EMB_INPUT_DIM = OUTPUT_DIM
@@ -361,10 +340,8 @@ HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
-# enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
 enc = Encoder(INPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
-# dec = Decoder(INPUT_DIM, OUTPUT_DIM, DEC_EMB_SRC_DIM, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
-dec = Decoder(INPUT_DIM, OUTPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
@@ -489,6 +466,7 @@ BEAM_WIDTH = 10
 LP_ALPHA = 1
 
 best_valid_loss = float("inf")
+useless_epochs = 0
 
 # TODO add checkpoint to google drive (colab) or local (local) at each epoch end
 # TODO iterator.init_epoch and shuffle data at each epoch start
@@ -524,10 +502,11 @@ for epoch in range(N_EPOCHS):
         AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
         logger(None, verbose=4)
 
-    """
-    if val_loss <= 0.01:
+    if best_valid_loss - val_loss < 0.01:
+        useless_epochs += 1
+
+    if useless_epochs > 5:
         break
-    """
 
 test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
 res_outputter(test_res, "test_res")
