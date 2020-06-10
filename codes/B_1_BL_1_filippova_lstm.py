@@ -13,6 +13,8 @@ import os
 import time
 import math
 import json
+from datetime import datetime
+
 import torch
 import torch.nn as nn
 from torch import optim
@@ -64,8 +66,13 @@ TEST_VERBOSE = 3
 # define AFFIX
 AFFIX = ""
 
-# clear output.log
-logger(None, verbose=4)
+checkpoints = sorted([file_ for file_ in os.listdir(PATH_OUTPUT) if file_.split('.')[0][:17] == 'checkpoint_epoch_'])
+
+if checkpoints:
+    logger('\n\nresume from checkpoint: %s\n%s\n' % (checkpoints[-1], datetime.now()), verbose=3)
+else:
+    # clear output.log
+    logger(None, verbose=4)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
@@ -149,30 +156,30 @@ COMPR = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos
 
 path_data = "../Google_dataset_news/"
 
-train_val = TabularDataset(
+train = TabularDataset(
     path=path_data + "B_0_training_data.csv",
     format="csv",
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True,
 )
-give_label(train_val)
-train, val = train_val.split(split_ratio=0.9)
+give_label(train)
 
-test = TabularDataset(
+val_test = TabularDataset(
     path=path_data + "B_0_eval_data.csv",
     format="csv",
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True
 )
-give_label(test)
+give_label(val_test)
+val, test = val_test.split(split_ratio=0.5)
 
-ORIG.build_vocab(train, min_freq=10, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 COMPR.build_vocab(train, min_freq=1)
 
 """
 """
 # for testing use only small amount of data
-# train, _ = train.split(split_ratio=0.0001)
+#train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.05)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.05)
@@ -185,8 +192,8 @@ logger("train: %s examples" % len(train.examples), verbose=VERBOSE)
 logger("val: %s examples" % len(val.examples), verbose=VERBOSE)
 logger("test: %s examples" % len(test.examples), verbose=VERBOSE)
 
-# split log files by epoch if train too big
-if len(train.examples) + len(val.examples) + len(test.examples) >= 2000:
+# split log files by epoch if train too big -- when no checkpoints
+if len(train.examples) + len(val.examples) + len(test.examples) >= 2000 and not checkpoints:
     AFFIX = "_epoch_1"
     logger(None, verbose=4)
 
@@ -216,9 +223,9 @@ class PriorityEntry(object):  # prevent queue from comparing data
 
 
 class Encoder(nn.Module):
-    def __init__(self, input_dim, pretrained_vectors, hid_dim, n_layers, dropout):
+    def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
-        self.input_dim = input_dim
+        # self.input_dim = input_dim
         self.emb_dim = pretrained_vectors.shape[1]
         self.hid_dim = hid_dim
         self.n_layers = n_layers
@@ -331,7 +338,6 @@ class Seq2Seq(nn.Module):
         return outputs
 
 
-INPUT_DIM = len(ORIG.vocab)
 OUTPUT_DIM = len(COMPR.vocab)
 ENC_EMB_DIM = ORIG.vocab.vectors.shape[1]
 DEC_EMB_SRC_DIM = 256
@@ -340,7 +346,7 @@ HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
-enc = Encoder(INPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
+enc = Encoder(ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
 dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
@@ -409,7 +415,7 @@ def train(model,
             # scheduler.step()
 
         if val_in_epoch and ((i + 1) % in_epoch_steps) == 0:
-            val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+            val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=TRAIN_VERBOSE)
             logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
             model.train()
 
@@ -460,17 +466,28 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 20
+N_EPOCHS = 50
 CLIP = float("inf")  # TODO adjust clip value
 BEAM_WIDTH = 10
 LP_ALPHA = 1
 
-best_valid_loss = float("inf")
-useless_epochs = 0
+if checkpoints:
+    checkpoint = torch.load(PATH_OUTPUT + checkpoints[-1])
+    start_epoch = checkpoint['epoch'] + 1
+    best_val_loss = checkpoint['best_val_loss']
+    useless_epochs = checkpoint['useless_epochs']
+    val_losses = checkpoint['val_losses']
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+else:
+    start_epoch = 0
+    best_val_loss = float("inf")
+    useless_epochs = 0
+    val_losses = []
 
 # TODO add checkpoint to google drive (colab) or local (local) at each epoch end
 # TODO iterator.init_epoch and shuffle data at each epoch start
-for epoch in range(N_EPOCHS):
+for epoch in range(start_epoch, N_EPOCHS):
     start_time = time.time()
 
     train_loss = train(model,
@@ -493,20 +510,44 @@ for epoch in range(N_EPOCHS):
     logger(f"\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}", verbose=VERBOSE)
 
     val_loss, val_res = evaluate(model, val_iterator, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
+    val_losses.append(val_loss)
     res_outputter(val_res, "val_res_epoch%s" % (epoch + 1))
 
     logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
+
+    torch.save({
+        'epoch': epoch,
+        'best_val_loss': best_val_loss,
+        'useless_epochs': useless_epochs,
+        'val_losses': val_losses,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+    }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
+
+    if best_val_loss - val_loss < 0.001:
+        useless_epochs += 1
+    else:
+        best_val_loss = val_loss
+        useless_epochs = 0
+    if useless_epochs > 5 or epoch == N_EPOCHS - 1:
+        v_min, i_min = sorted((v, i) for i, v in enumerate(val_losses))[0]
+        if val_loss > v_min:
+            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(i_min + 1) + '.pt')
+            best_epoch = checkpoint['epoch']
+            best_val_loss = checkpoint['best_val_loss']
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        else:
+            best_epoch = epoch
+        break
 
     # update AFFIX if necessary
     if AFFIX:
         AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
         logger(None, verbose=4)
 
-    if best_valid_loss - val_loss < 0.01:
-        useless_epochs += 1
-
-    if useless_epochs > 5:
-        break
+logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
+       verbose=TEST_VERBOSE)
 
 test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
 res_outputter(test_res, "test_res")
