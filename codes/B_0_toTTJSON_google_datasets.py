@@ -80,7 +80,6 @@ def to_ttjson(out_file, buffer):
                              ))
         print(f_json, file=out_file)
 
-"""
 #with open(file_path + 'B_0_training_data.csv', 'w') as csvfile:
 with open(file_path + 'B_0_training_data.ttjson', 'w') as out_file:
     #writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -99,7 +98,6 @@ with open(file_path + 'B_0_training_data.ttjson', 'w') as out_file:
             if len(buffer) > 0:
                 #to_csv_record(writer, buffer)
                 to_ttjson(out_file, buffer)
-"""
 
 #with open(file_path + 'B_0_eval_data.csv', 'w') as csvfile:
 with open(file_path + 'B_0_eval_data.ttjson', 'w') as out_file:

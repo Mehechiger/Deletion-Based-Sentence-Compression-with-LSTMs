@@ -199,11 +199,7 @@ FIELDS = {"original": ("original", ORIG),
           }
 
 # path_data = "../Google_dataset_news/"
-"""
-"""
-PATH_DATA = "../Google_dataset_news/"
-"""
-"""
+
 train = TabularDataset(
     # path=PATH_DATA + "B_0_training_data.csv",
     path=PATH_DATA + "B_0_training_data.ttjson",
