@@ -154,17 +154,7 @@ def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT)
         json.dump(to_dump, f)
 
 
-"""
-ORIG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-LEMMA = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-POS = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-TAG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-DEP = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-HEAD = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-HEAD_TEXT = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-DEPTH = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
-COMPR = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>", unk_token=None)
-"""
+
 ORIG = Field(lower=True, init_token="<eos>", eos_token="<eos>")
 LEMMA = Field(lower=True, init_token="<eos>", eos_token="<eos>")
 POS = Field(lower=True, init_token="<eos>", eos_token="<eos>")
@@ -175,18 +165,7 @@ HEAD_TEXT = Field(lower=True, init_token="<eos>", eos_token="<eos>")
 DEPTH = Field(lower=True, init_token="<eos>", eos_token="<eos>")
 COMPR = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
-"""
-FIELDS = [("original", ORIG),
-          # ("lemma", LEMMA),
-          # ("pos", POS),
-          # ("tag", TAG),
-          # ("dep", DEP),
-          # ("head", HEAD),
-          ("head_text", HEAD_TEXT),
-          # ("depth", DEPTH),
-          ("compressed", COMPR)
-          ]
-"""
+
 FIELDS = {"original": ("original", ORIG),
           # "lemma":("lemma", LEMMA),
           # "pos":("pos", POS),
@@ -198,31 +177,23 @@ FIELDS = {"original": ("original", ORIG),
           "compressed": ("compressed", COMPR)
           }
 
-# path_data = "../Google_dataset_news/"
 
 train = TabularDataset(
-    # path=PATH_DATA + "B_0_training_data.csv",
     path=PATH_DATA + "B_0_training_data.ttjson",
-    # format="csv",
     format="json",
     fields=FIELDS,
-    # skip_header=True
 )
 give_label(train)
 
 val_test = TabularDataset(
-    # path=PATH_DATA + "B_0_eval_data.csv",
     path=PATH_DATA + "B_0_eval_data.ttjson",
-    # format="csv",
     format="json",
     fields=FIELDS,
-    # skip_header=True
 )
 give_label(val_test)
 val, test = val_test.split(split_ratio=0.5)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
-# HEAD_TEXT.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 HEAD_TEXT.vocab = ORIG.vocab
 # TODO add <*ROOT*>
 COMPR.build_vocab(train, min_freq=1)

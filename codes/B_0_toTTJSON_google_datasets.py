@@ -1,7 +1,5 @@
 # https://github.com/google-research-datasets/sentence-compression/issues/1#issuecomment-520114905
-#import copy
 import json
-#import csv
 from glob import glob
 import spacy
 
@@ -42,18 +40,14 @@ def tokenizer_parser(text):
         processed["tag"].append(token.tag_)
         processed["dep"].append(token.dep_)
         processed["head"].append(token.head.i if token.dep_ != "ROOT" else -1)
-    #heads = copy.deepcopy(processed["head"])
     heads = processed["head"]
     for i in range(len(heads)):
         head = heads[i]
         processed["head_text"].append(processed["text"][head] if head>=0 else "<*ROOT*>")
-        #processed["depth"].append(str(bottom_up_tree_depth(heads, head)))
-        #processed["head"][i] = str(head)
         processed["depth"].append(bottom_up_tree_depth(heads, head))
     return processed
 
 
-#def to_csv_record(writer, buffer):
 def to_ttjson(out_file, buffer):
     record = json.loads(buffer)
     original_processed = tokenizer_parser(record['graph']['sentence'])
@@ -67,7 +61,6 @@ def to_ttjson(out_file, buffer):
     depth = original_processed['depth']
     compressed = tokenizer(record['compression']['text'])
     if set(original).issuperset(compressed) and len(original)==len(lemma)==len(pos)==len(tag)==len(dep)==len(dep)==len(head)==len(head_text)==len(depth):
-        #writer.writerow(dict(original=" ".join(original), lemma=" ".join(lemma), pos=" ".join(pos), tag=" ".join(tag), dep=" ".join(dep), head=" ".join(head), head_text=" ".join(head_text), depth=" ".join(depth), compressed=" ".join(compressed) ))
         f_json = json.dumps(dict(original=original,
                              lemma=lemma,
                              pos=pos,
@@ -80,39 +73,27 @@ def to_ttjson(out_file, buffer):
                              ))
         print(f_json, file=out_file)
 
-#with open(file_path + 'B_0_training_data.csv', 'w') as csvfile:
 with open(file_path + 'B_0_training_data.ttjson', 'w') as out_file:
-    #writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    #writer.writeheader()
-
     for json_file in glob(file_path + '**train**.json'):
         with open(json_file) as raw_contents:
             buffer = ''
             for line in raw_contents:
                 if line.strip() == '':
-                    #to_csv_record(writer, buffer)
                     to_ttjson(out_file,buffer)
                     buffer = ''
                 else:
                     buffer += line
             if len(buffer) > 0:
-                #to_csv_record(writer, buffer)
                 to_ttjson(out_file, buffer)
 
-#with open(file_path + 'B_0_eval_data.csv', 'w') as csvfile:
 with open(file_path + 'B_0_eval_data.ttjson', 'w') as out_file:
-    #writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    #writer.writeheader()
-
     with open(file_path + 'comp-data.eval.json') as raw_contents:
         buffer = ''
         for line in raw_contents:
             if line.strip() == '':
-                #to_csv_record(writer, buffer)
                 to_ttjson(out_file,buffer)
                 buffer = ''
             else:
                 buffer += line
         if len(buffer) > 0:
-            #to_csv_record(writer, buffer)
             to_ttjson(out_file, buffer)
