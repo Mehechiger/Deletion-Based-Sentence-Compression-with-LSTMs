@@ -154,6 +154,13 @@ def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT)
 
 
 ORIG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
+LEMMA = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
+POS = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
+TAG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
+DEP = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
+HEAD = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
+HEAD_TEXT = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
+DEPTH = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
 COMPR = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
 FIELDS = [("original", ORIG), ("head_text", HEAD_TEXT), ("compressed", COMPR)]
@@ -163,21 +170,23 @@ FIELDS = [("original", ORIG), ("head_text", HEAD_TEXT), ("compressed", COMPR)]
 train = TabularDataset(
     path=PATH_DATA+ "B_0_training_data.csv",
     format="csv",
-    fields=[("original", ORIG), ("compressed", COMPR)],
-    skip_header=True,
+    fields=FIELDS,
+    skip_header=True
 )
 give_label(train)
 
 val_test = TabularDataset(
     path=PATH_DATA + "B_0_eval_data.csv",
     format="csv",
-    fields=[("original", ORIG), ("compressed", COMPR)],
+    fields=FIELDS,
     skip_header=True
 )
 give_label(val_test)
 val, test = val_test.split(split_ratio=0.5)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+# HEAD_TEXT.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
+HEAD_TEXT.vocab = ORIG.vocab
 COMPR.build_vocab(train, min_freq=1)
 
 """
@@ -227,40 +236,55 @@ class PriorityEntry(object):  # prevent queue from comparing data
 
 
 class Encoder(nn.Module):
-    def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
+
+    def __init__(self, pretrained_vectors, n_layers, dropout):
+        # def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
-        # self.input_dim = input_dim
-        self.emb_dim = pretrained_vectors.shape[1]
-        self.hid_dim = hid_dim
+        # self.emb_dim = pretrained_vectors.shape[1]
+        self.emb_dim = pretrained_vectors.shape[1] * 2
+        # self.hid_dim = hid_dim
+        self.hid_dim = self.emb_dim
         self.n_layers = n_layers
+        self.dropout = dropout
 
         self.embedding = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.rnn = nn.LSTM(self.emb_dim, hid_dim, n_layers, dropout=dropout)
+        self.rnn = nn.LSTM(self.emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
 
     def forward(self, src):
-        embedded = self.embedding(src)
+        # embedded = self.embedding(src)
+        text_embedded = self.embedding(src[0])
+        head_text_embedded = self.embedding(src[1])
+        embedded = torch.cat((text_embedded, head_text_embedded), dim=2)
         outputs, (hidden, cell) = self.rnn(embedded)
         return hidden, cell
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
+    # def __init__(self, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, n_layers, dropout, device):
         super().__init__()
 
-        self.emb_src_dim = pretrained_vectors.shape[1]
-        self.hid_dim = hid_dim
+        # self.emb_src_dim = pretrained_vectors.shape[1]
+        self.emb_src_dim = pretrained_vectors.shape[1] * 2
+        # self.hid_dim = hid_dim
+        self.hid_dim = self.emb_src_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
+        self.dropout = dropout
         self.device = device
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
-        self.out = nn.Linear(hid_dim, output_dim)
+        self.rnn = nn.LSTM(self.emb_src_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
+        self.out = nn.Linear(self.hid_dim, self.output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, hidden, cell):
-        src = src.unsqueeze(0)
-        embedded = self.embedding_src(src)
+        # src = src.unsqueeze(0)
+        src = src.unsqueeze(1)
+        # embedded = self.embedding_src(src)
+        text_embedded = self.embedding_src(src[0])
+        head_text_embedded = self.embedding_src(src[1])
+        embedded = torch.cat((text_embedded, head_text_embedded), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
@@ -283,10 +307,13 @@ class Seq2Seq(nn.Module):
             cp = 0  # coverage penalty - for attention mechanism
             return prob / lp + cp
 
-        max_len = src.shape[0]
-        batch_size = src.shape[1]
+        # max_len = src.shape[0]
+        # batch_size = src.shape[1]
+        max_len = src.shape[1]
+        batch_size = src.shape[2]
         output_dim = self.decoder.output_dim
-        src_ = src[0, :].repeat(beam_width)
+        # src_ = src[0, :].repeat(beam_width)
+        src_ = src[:, 0, :].repeat(1, beam_width)
         hidden = hidden.repeat(1, beam_width, 1)
         cell = cell.repeat(1, beam_width, 1)
         output, hidden, cell = self.decoder(src_, hidden, cell)
@@ -297,7 +324,8 @@ class Seq2Seq(nn.Module):
         backtrack[0, :, :] = output.topk(k=1, dim=1).indices
 
         for t in range(1, max_len):
-            src_ = src[t, :].repeat(beam_width)
+            # src_ = src[t, :].repeat(beam_width)
+            src_ = src[:, t, :].repeat(1, beam_width)
             output, hidden, cell = self.decoder(src_, hidden, cell)
 
             probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
@@ -327,14 +355,16 @@ class Seq2Seq(nn.Module):
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
-        hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
+        # hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
+        hidden, cell = self.encoder(torch.flip(src[:, 1:, :], [1, ]))
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
             max_len = trg.shape[0]
             output_dim = self.decoder.output_dim
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
-                src_ = src[t, :]
+                # src_ = src[t, :]
+                src_ = src[:, t, :]
                 output, hidden, cell = self.decoder(src_, hidden, cell)
                 outputs[t] = output
         else:
@@ -343,15 +373,11 @@ class Seq2Seq(nn.Module):
 
 
 OUTPUT_DIM = len(COMPR.vocab)
-ENC_EMB_DIM = ORIG.vocab.vectors.shape[1]
-DEC_EMB_SRC_DIM = 256
-DEC_EMB_INPUT_DIM = OUTPUT_DIM
-HID_DIM = ENC_EMB_DIM
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
-enc = Encoder(ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+enc = Encoder(ORIG.vocab.vectors, N_LAYERS, ENC_DROPOUT)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
@@ -388,7 +414,8 @@ def train(model,
     epoch_loss = 0
 
     for i, batch in enumerate(iterator):
-        src = batch.original
+        # src = batch.original
+        src = torch.stack((batch.original, batch.head_text), dim=0)
         trg = batch.compressed
 
         try:
@@ -402,7 +429,7 @@ def train(model,
                 raise exception
 
         if verbose:
-            compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
+            compress_with_labels(src[0, :, :], trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
 
         output = output.view(-1, output.shape[-1])
         trg = trg.view(-1)
@@ -435,7 +462,8 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
 
     with torch.no_grad():
         for i, batch in enumerate(iterator):
-            src = batch.original
+            # src = batch.original
+            src = torch.stack((batch.original, batch.head_text), dim=0)
             trg = batch.compressed
 
             try:
@@ -449,9 +477,9 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
                     raise exception
 
             if verbose:
-                res += compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
+                res += compress_with_labels(src[0, :, :], trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=verbose)
             else:
-                res += compress_with_labels(src, trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=1)
+                res += compress_with_labels(src[0, :, :], trg, output, ORIG.vocab.itos, COMPR.vocab.itos, out=1)
 
             output = output.view(-1, output.shape[-1])
             trg = trg.view(-1)
