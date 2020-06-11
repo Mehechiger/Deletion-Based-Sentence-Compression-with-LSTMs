@@ -62,7 +62,7 @@ def logger(*content, verbose=False, path_log=PATH_LOG):
 # 4, None, False, 0 = clear log file
 VERBOSE = 3
 TRAIN_VERBOSE = 1
-VAL_VERBOSE = 2
+VAL_VERBOSE = 3
 TEST_VERBOSE = 3
 
 # define AFFIX
@@ -79,9 +79,10 @@ else:
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
-
+"""
 def splitter(text):
     return text.split(" ")
+"""
 
 
 def give_label(tabular_dataset):
@@ -153,6 +154,7 @@ def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT)
         json.dump(to_dump, f)
 
 
+"""
 ORIG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
 LEMMA = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
 POS = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
@@ -162,24 +164,63 @@ HEAD = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>
 HEAD_TEXT = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
 DEPTH = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
 COMPR = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>", unk_token=None)
+"""
+ORIG = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+LEMMA = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+POS = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+TAG = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+DEP = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+HEAD = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+HEAD_TEXT = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+DEPTH = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+COMPR = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
-FIELDS = [("original", ORIG), ("head_text", HEAD_TEXT), ("compressed", COMPR)]
+"""
+FIELDS = [("original", ORIG),
+          # ("lemma", LEMMA),
+          # ("pos", POS),
+          # ("tag", TAG),
+          # ("dep", DEP),
+          # ("head", HEAD),
+          ("head_text", HEAD_TEXT),
+          # ("depth", DEPTH),
+          ("compressed", COMPR)
+          ]
+"""
+FIELDS = {"original": ("original", ORIG),
+          # "lemma":("lemma", LEMMA),
+          # "pos":("pos", POS),
+          # "tag":("tag", TAG),
+          # "dep":("dep", DEP),
+          # "head":("head", HEAD),
+          "head_text": ("head_text", HEAD_TEXT),
+          # "depth":("depth", DEPTH),
+          "compressed": ("compressed", COMPR)
+          }
 
-#path_data = "../Google_dataset_news/"
-
+# path_data = "../Google_dataset_news/"
+"""
+"""
+PATH_DATA = "../Google_dataset_news/"
+"""
+"""
 train = TabularDataset(
-    path=PATH_DATA+ "B_0_training_data.csv",
-    format="csv",
+    # path=PATH_DATA + "B_0_training_data.csv",
+    path=PATH_DATA + "B_0_training_data.ttjson",
+    # format="csv",
+    format="json",
     fields=FIELDS,
-    skip_header=True
+    # skip_header=True
 )
 give_label(train)
 
 val_test = TabularDataset(
-    path=PATH_DATA + "B_0_eval_data.csv",
-    format="csv",
+    # path=PATH_DATA + "B_0_eval_data.csv",
+    path=PATH_DATA + "B_0_eval_data.ttjson",
+    # format="csv",
+    format="json",
     fields=FIELDS,
-    skip_header=True
+    # skip_header=True
 )
 give_label(val_test)
 val, test = val_test.split(split_ratio=0.5)
@@ -187,6 +228,7 @@ val, test = val_test.split(split_ratio=0.5)
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 # HEAD_TEXT.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 HEAD_TEXT.vocab = ORIG.vocab
+# TODO add <*ROOT*>
 COMPR.build_vocab(train, min_freq=1)
 
 """
