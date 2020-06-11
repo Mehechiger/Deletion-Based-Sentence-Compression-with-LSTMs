@@ -21,17 +21,13 @@ from torch import optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 
 if not os.path.isdir("/content/"):
-    CUDA = False
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
     PATH_LOG = "../outputs/"
     PATH_OUTPUT = "../outputs/"
 else:
-    CUDA = True
     VECTORS_CACHE = "/content/drive/My Drive/Colab_tmp/vector_cache"
     PATH_LOG = "/content/drive/My Drive/Colab_tmp/"
     PATH_OUTPUT = "/content/drive/My Drive/Colab_tmp/"
-    APEX_OPT_LV = '01'
-    from apex import amp
 
 
 def logger(*content, verbose=False, path_log=PATH_LOG):
@@ -78,7 +74,14 @@ else:
     # clear output.log
     logger(None, verbose=4)
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+CUDA = torch.cuda.is_available()
+if CUDA:
+    DEVICE = torch.device("cuda")
+    APEX_OPT_LV = 'O1'
+    from apex import amp
+else:
+    DEVICE = torch.device("cpu")
+
 logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
 
