@@ -168,11 +168,11 @@ COMPR = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
 FIELDS = {"original": ("original", ORIG),
           # "lemma":("lemma", LEMMA),
-          # "pos":("pos", POS),
+          "pos":("pos", POS),
           # "tag":("tag", TAG),
           # "dep":("dep", DEP),
           # "head":("head", HEAD),
-          "head_text": ("head_text", HEAD_TEXT),
+          #"head_text": ("head_text", HEAD_TEXT),
           # "depth":("depth", DEPTH),
           "compressed": ("compressed", COMPR)
           }
@@ -194,7 +194,7 @@ give_label(val_test)
 val, test = val_test.split(split_ratio=0.5)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
-HEAD_TEXT.vocab = ORIG.vocab
+POS.build_vocab(train, min_freq=1)
 # TODO add <*ROOT*>
 COMPR.build_vocab(train, min_freq=1)
 
