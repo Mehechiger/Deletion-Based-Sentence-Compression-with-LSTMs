@@ -22,10 +22,12 @@ from torchtext.data import Field, BucketIterator, TabularDataset
 
 if not os.path.isdir("/content/"):
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
+    PATH_DATA = "/Users/mehec/Google Drive/Colab_tmp/data/"
     PATH_LOG = "../outputs/"
     PATH_OUTPUT = "../outputs/"
 else:
     VECTORS_CACHE = "/content/drive/My Drive/Colab_tmp/vector_cache"
+    PATH_DATA = "/content/drive/My Drive/Colab_tmp/data/"
     PATH_LOG = "/content/drive/My Drive/Colab_tmp/"
     PATH_OUTPUT = "/content/drive/My Drive/Colab_tmp/"
 
@@ -154,10 +156,12 @@ def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT)
 ORIG = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>")
 COMPR = Field(lower=True, tokenize=splitter, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
-path_data = "../Google_dataset_news/"
+FIELDS = [("original", ORIG), ("head_text", HEAD_TEXT), ("compressed", COMPR)]
+
+#path_data = "../Google_dataset_news/"
 
 train = TabularDataset(
-    path=path_data + "B_0_training_data.csv",
+    path=PATH_DATA+ "B_0_training_data.csv",
     format="csv",
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True,
@@ -165,7 +169,7 @@ train = TabularDataset(
 give_label(train)
 
 val_test = TabularDataset(
-    path=path_data + "B_0_eval_data.csv",
+    path=PATH_DATA + "B_0_eval_data.csv",
     format="csv",
     fields=[("original", ORIG), ("compressed", COMPR)],
     skip_header=True
