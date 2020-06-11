@@ -225,7 +225,6 @@ class PriorityEntry(object):  # prevent queue from comparing data
 class Encoder(nn.Module):
     def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
-        # self.input_dim = input_dim
         self.emb_dim = pretrained_vectors.shape[1]
         self.hid_dim = hid_dim
         self.n_layers = n_layers
@@ -240,23 +239,29 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, emb_input_dim, hid_dim, n_layers, dropout, device):
         super().__init__()
 
         self.emb_src_dim = pretrained_vectors.shape[1]
+        self.emb_input_dim = emb_input_dim
         self.hid_dim = hid_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
         self.device = device
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
+        self.embedding_input = lambda l: torch.eye(
+            emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
+        self.rnn = nn.LSTM(self.emb_src_dim + emb_input_dim,
+                           hid_dim, n_layers, dropout=dropout)
         self.out = nn.Linear(hid_dim, output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, src, hidden, cell):
+    def forward(self, src, input_, hidden, cell):
+        input_ = input_.unsqueeze(0)
         src = src.unsqueeze(0)
         embedded = self.embedding_src(src)
+        embedded = torch.cat((embedded, self.embedding_input(input_)), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
@@ -273,7 +278,7 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def batch_beam_predict(self, src, hidden, cell, beam_width, lp_alpha=1):
+    def batch_beam_predict(self, src, input_, hidden, cell, beam_width, lp_alpha=1):
         def normalize(prob, l, alpha=lp_alpha):
             lp = (5 + l) ** alpha / 6 ** alpha
             cp = 0  # coverage penalty - for attention mechanism
@@ -282,19 +287,22 @@ class Seq2Seq(nn.Module):
         max_len = src.shape[0]
         batch_size = src.shape[1]
         output_dim = self.decoder.output_dim
+        input_ = input_.repeat(beam_width)
         src_ = src[0, :].repeat(beam_width)
         hidden = hidden.repeat(1, beam_width, 1)
         cell = cell.repeat(1, beam_width, 1)
-        output, hidden, cell = self.decoder(src_, hidden, cell)
+        output, hidden, cell = self.decoder(src_, input_, hidden, cell)
 
         outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
         outputs[0, :, :] = output
         backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
         backtrack[0, :, :] = output.topk(k=1, dim=1).indices
 
+        input_ = output.topk(k=1, dim=1).indices
+
         for t in range(1, max_len):
             src_ = src[t, :].repeat(beam_width)
-            output, hidden, cell = self.decoder(src_, hidden, cell)
+            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
 
             probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
             probs += output
@@ -320,6 +328,7 @@ class Seq2Seq(nn.Module):
                 top_indices = top_indices.fmod(output_dim).t().reshape(-1)
                 backtrack[t, :, 0] = top_indices
 
+                input_ = top_indices
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
@@ -331,10 +340,12 @@ class Seq2Seq(nn.Module):
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
                 src_ = src[t, :]
-                output, hidden, cell = self.decoder(src_, hidden, cell)
+                input_ = trg[t, :]
+                output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
         else:
-            outputs = self.batch_beam_predict(src, hidden, cell, beam_width, LP_ALPHA)
+            input_ = trg[0, :]
+            outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
 
@@ -347,7 +358,7 @@ N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
@@ -415,7 +426,7 @@ def train(model,
             # scheduler.step()
 
         if val_in_epoch and ((i + 1) % in_epoch_steps) == 0:
-            val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=TRAIN_VERBOSE)
+            val_loss, val_res = evaluate(model, val_in_epoch, criterion, beam_width=BEAM_WIDTH, verbose=VAL_VERBOSE)
             logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
             model.train()
 
