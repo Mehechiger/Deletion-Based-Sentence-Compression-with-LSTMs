@@ -491,8 +491,6 @@ if checkpoints:
     best_epoch = checkpoint['best_epoch']
     useless_epochs = checkpoint['useless_epochs']
     val_losses = checkpoint['val_losses']
-    if CUDA:
-        model, optimizer = amp.initialize(model, optimizer, opt_level=APEX_OPT_LV)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     if CUDA:
