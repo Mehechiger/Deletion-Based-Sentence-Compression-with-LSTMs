@@ -21,13 +21,17 @@ from torch import optim
 from torchtext.data import Field, BucketIterator, TabularDataset
 
 if not os.path.isdir("/content/"):
+    CUDA = False
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
     PATH_LOG = "../outputs/"
     PATH_OUTPUT = "../outputs/"
 else:
+    CUDA = True
     VECTORS_CACHE = "/content/drive/My Drive/Colab_tmp/vector_cache"
     PATH_LOG = "/content/drive/My Drive/Colab_tmp/"
     PATH_OUTPUT = "/content/drive/My Drive/Colab_tmp/"
+    APEX_OPT_LV = '01'
+    from apex import amp
 
 
 def logger(*content, verbose=False, path_log=PATH_LOG):
@@ -362,6 +366,8 @@ scheduler = optim.lr_scheduler.StepLR(optimizer,
                                       )
 """
 optimizer = optim.Adam(model.parameters())
+if CUDA:
+    model, optimizer = amp.initialize(model, optimizer, opt_level=APEX_OPT_LV)
 criterion = nn.NLLLoss()
 
 
@@ -406,7 +412,11 @@ def train(model,
         loss = criterion(output, trg)
         logger("batch %s, loss: " % i, loss.item(), verbose=3)
 
-        loss.backward()
+        if CUDA:
+            with amp.scale_loss(loss, optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
 
         if ((i + 1) % accumulation_steps) == 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
@@ -478,8 +488,12 @@ if checkpoints:
     best_epoch = checkpoint['best_epoch']
     useless_epochs = checkpoint['useless_epochs']
     val_losses = checkpoint['val_losses']
+    if CUDA:
+        model, optimizer = amp.initialize(model, optimizer, opt_level=APEX_OPT_LV)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    if CUDA:
+        amp.load_state_dict(checkpoint['amp'])
 else:
     start_epoch = 0
     best_val_loss = float("inf")
@@ -517,15 +531,27 @@ for epoch in range(start_epoch, N_EPOCHS):
 
     logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
 
-    torch.save({
-        'epoch': epoch,
-        'best_val_loss': best_val_loss,
-        'best_epoch': best_epoch,
-        'useless_epochs': useless_epochs,
-        'val_losses': val_losses,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-    }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
+    if CUDA:
+        torch.save({
+            'epoch': epoch,
+            'best_val_loss': best_val_loss,
+            'best_epoch': best_epoch,
+            'useless_epochs': useless_epochs,
+            'val_losses': val_losses,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'amp': amp.state_dict()
+        }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
+    else:
+        torch.save({
+            'epoch': epoch,
+            'best_val_loss': best_val_loss,
+            'best_epoch': best_epoch,
+            'useless_epochs': useless_epochs,
+            'val_losses': val_losses,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict()
+        }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
 
     if val_loss < best_val_loss:
         if best_val_loss - val_loss >= 0.001:
