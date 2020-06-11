@@ -374,7 +374,7 @@ class Seq2Seq(nn.Module):
 
 
 OUTPUT_DIM = len(COMPR.vocab)
-DEP_DIM = len(POS.vocab)
+DEP_DIM = len(DEP.vocab)
 DEP_EMB_DIM = 50
 N_LAYERS = 3
 ENC_DROPOUT = 0
