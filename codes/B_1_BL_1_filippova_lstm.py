@@ -325,7 +325,7 @@ class Decoder(nn.Module):
         positionalembedding = self.positionalembedding(src[3])
         dep_embedded = self.embedding_dep(src[1])
         head_embedded = self.embedding_head(src[2])
-        embedded = torch.cat((text_embedded, dep_embedded + head_embedded), dim=2)
+        embedded = torch.cat((text_embedded+positionalembedding, dep_embedded + head_embedded), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
