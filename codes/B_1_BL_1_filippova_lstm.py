@@ -156,7 +156,7 @@ def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT)
         json.dump(to_dump, f)
 
 
-SPE_IDX = 500
+SPE_IDX = 2000
 
 ORIG = Field(lower=True, init_token="<eos>", eos_token="<eos>")
 LEMMA = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
