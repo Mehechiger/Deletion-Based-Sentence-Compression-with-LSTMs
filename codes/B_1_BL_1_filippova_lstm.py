@@ -288,7 +288,7 @@ class Encoder(nn.Module):
 
     def forward(self, src):
         text_embedded = self.embedding_text(src[0])
-        positionalembedding = self.positionalembedding(torch.LongTensor(src[3]))
+        positionalembedding = self.positionalembedding(src[3])
         dep_embedded = self.embedding_dep(src[1])
         head_embedded = self.embedding_head(src[2])
         embedded = torch.cat((text_embedded + positionalembedding, dep_embedded + head_embedded), dim=2)
