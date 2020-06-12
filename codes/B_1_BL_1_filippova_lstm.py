@@ -374,7 +374,7 @@ model.to(DEVICE)
 """
 LR = 2
 optimizer = optim.SGD(model.parameters(), lr=LR)
-STEP_SIZE = 300000 / (BATCH_SIZE * ACCUMULATION_STEPS
+STEP_SIZE = 300000 / (BATCH_SIZE * ACCUMULATION_STEPS)
 GAMMA = 0.96
 scheduler = optim.lr_scheduler.StepLR(optimizer,
                                       step_size=STEP_SIZE,
