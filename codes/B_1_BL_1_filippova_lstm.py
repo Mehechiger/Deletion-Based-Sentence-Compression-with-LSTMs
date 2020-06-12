@@ -216,17 +216,7 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
                                                                     )
 
 
-class PriorityEntry(object):  # prevent queue from comparing data
-    """
-    source: https://stackoverflow.com/a/40205431
-    """
 
-    def __init__(self, priority, data):
-        self.data = data
-        self.priority = priority
-
-    def __lt__(self, other):
-        return self.priority < other.priority
 
 
 class Encoder(nn.Module):
@@ -357,15 +347,12 @@ class Seq2Seq(nn.Module):
 
 
 OUTPUT_DIM = len(COMPR.vocab)
-ENC_EMB_DIM = ORIG.vocab.vectors.shape[1]
-DEC_EMB_SRC_DIM = 256
-DEC_EMB_INPUT_DIM = OUTPUT_DIM
-HID_DIM = ENC_EMB_DIM
+HID_DIM = ORIG.vocab.vectors.shape[1]
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, DEC_EMB_INPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, OUTPUT_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
