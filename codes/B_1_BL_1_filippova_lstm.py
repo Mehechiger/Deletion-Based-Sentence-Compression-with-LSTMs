@@ -222,8 +222,8 @@ if len(train.examples) + len(val.examples) + len(test.examples) >= 2000 and not 
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
-BATCH_SIZE = 32
-ACCUMULATION_STEPS = 1
+BATCH_SIZE = 4
+ACCUMULATION_STEPS = 8
 
 train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
                                                                     batch_size=BATCH_SIZE,
