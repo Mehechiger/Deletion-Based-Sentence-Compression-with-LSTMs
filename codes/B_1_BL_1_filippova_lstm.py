@@ -156,7 +156,7 @@ def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT)
         json.dump(to_dump, f)
 
 
-SPE_IDX = 500
+SPE_IDX = 2000
 
 ORIG = Field(lower=True, init_token="<eos>", eos_token="<eos>")
 LEMMA = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
@@ -173,7 +173,7 @@ FIELDS = {"original": ("original", ORIG),
           # "pos":("pos", POS),
           # "tag":("tag", TAG),
           # "dep":("dep", DEP),
-          "head":("head", HEAD),
+          "head": ("head", HEAD),
           "head_text": ("head_text", HEAD_TEXT),
           # "depth":("depth", DEPTH),
           "compressed": ("compressed", COMPR)
@@ -202,7 +202,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+# train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.05)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.05)
@@ -278,9 +278,9 @@ class Encoder(nn.Module):
 
     def forward(self, src):
         text_embedded = self.embedding_text(src[0])
+        head_text_embedded = self.embedding_text(src[1])
         head_embedded = self.embedding_head(src[2])
-        head_text_embedded = self.embedding(src[1])
-        embedded = torch.cat((text_embedded, head_text_embedded+head_embedded), dim=2)
+        embedded = torch.cat((text_embedded, head_text_embedded + head_embedded), dim=2)
         outputs, (hidden, cell) = self.rnn(embedded)
         return hidden, cell
 
@@ -305,9 +305,9 @@ class Decoder(nn.Module):
     def forward(self, src, hidden, cell):
         src = src.unsqueeze(1)
         text_embedded = self.embedding_src(src[0])
-        head_embedded = self.embedding_head(src[2])
         head_text_embedded = self.embedding_src(src[1])
-        embedded = torch.cat((text_embedded, head_text_embedded+head_embedded), dim=2)
+        head_embedded = self.embedding_head(src[2])
+        embedded = torch.cat((text_embedded, head_text_embedded + head_embedded), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
