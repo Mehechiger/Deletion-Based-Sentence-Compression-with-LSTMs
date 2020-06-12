@@ -172,9 +172,9 @@ FIELDS = {"original": ("original", ORIG),
           # "lemma":("lemma", LEMMA),
           # "pos":("pos", POS),
           # "tag":("tag", TAG),
-          "dep":("dep", DEP),
+          "dep": ("dep", DEP),
           "head": ("head", HEAD),
-          #"head_text": ("head_text", HEAD_TEXT),
+          # "head_text": ("head_text", HEAD_TEXT),
           # "depth":("depth", DEPTH),
           "compressed": ("compressed", COMPR)
           }
@@ -258,9 +258,6 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         x = self.pe[:x.size(0), :]
         return self.dropout(x)
-
-
-EMBEDDING_HEAD = PositionalEncoding(len(DEP.vocab), dropout=0, max_len=SPE_IDX, spe_idx=True)
 
 
 class Encoder(nn.Module):
@@ -403,6 +400,7 @@ DEP_EMB_DIM = 50
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
+EMBEDDING_HEAD = PositionalEncoding(DEP_EMB_DIM, dropout=0, max_len=SPE_IDX, spe_idx=True)
 enc = Encoder(ORIG.vocab.vectors, EMBEDDING_HEAD, DEP_DIM, DEP_EMB_DIM, N_LAYERS, ENC_DROPOUT)
 dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, EMBEDDING_HEAD, DEP_DIM, DEP_EMB_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
