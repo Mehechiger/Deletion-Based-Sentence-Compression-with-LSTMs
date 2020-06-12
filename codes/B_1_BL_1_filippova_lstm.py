@@ -196,7 +196,7 @@ val_test = TabularDataset(
     fields=FIELDS,
 )
 val_test.fields['position'] = POSITION
-for example in train.examples:
+for example in val_test.examples:
     setattr(example, 'position', list(range(len(example.original))))
 give_label(val_test)
 val, test = val_test.split(split_ratio=0.5)
