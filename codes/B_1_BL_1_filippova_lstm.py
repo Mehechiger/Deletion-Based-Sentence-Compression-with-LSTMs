@@ -168,9 +168,9 @@ COMPR = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
 FIELDS = {"original": ("original", ORIG),
           # "lemma":("lemma", LEMMA),
-          #"pos": ("pos", POS),
+          # "pos": ("pos", POS),
           # "tag":("tag", TAG),
-          "dep":("dep", DEP),
+          "dep": ("dep", DEP),
           # "head":("head", HEAD),
           # "head_text": ("head_text", HEAD_TEXT),
           # "depth":("depth", DEPTH),
@@ -200,7 +200,7 @@ COMPR.build_vocab(train, min_freq=1)
 """
 """
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
+# train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.05)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.05)
@@ -228,19 +228,6 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
                                                                     sort=False,
                                                                     device=DEVICE
                                                                     )
-
-
-class PriorityEntry(object):  # prevent queue from comparing data
-    """
-    source: https://stackoverflow.com/a/40205431
-    """
-
-    def __init__(self, priority, data):
-        self.data = data
-        self.priority = priority
-
-    def __lt__(self, other):
-        return self.priority < other.priority
 
 
 class Encoder(nn.Module):
