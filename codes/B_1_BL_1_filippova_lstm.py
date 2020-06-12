@@ -159,6 +159,7 @@ def res_outputter(res, file_name, show_spe_token=False, path_output=PATH_OUTPUT)
 SPE_IDX = 2000
 
 ORIG = Field(lower=True, init_token="<eos>", eos_token="<eos>")
+POSITION = Field(use_vocab=False, init_token=SPE_IDX, eos_token=SPE_IDX, pad_token=SPE_IDX, unk_token=None)
 LEMMA = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 POS = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 TAG = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
@@ -184,6 +185,9 @@ train = TabularDataset(
     format="json",
     fields=FIELDS,
 )
+train.fields['position'] = POSITION
+for example in train.examples:
+    setattr(example, 'position', list(range(len(example.original))))
 give_label(train)
 
 val_test = TabularDataset(
@@ -191,6 +195,9 @@ val_test = TabularDataset(
     format="json",
     fields=FIELDS,
 )
+val_test.fields['position'] = POSITION
+for example in train.examples:
+    setattr(example, 'position', list(range(len(example.original))))
 give_label(val_test)
 val, test = val_test.split(split_ratio=0.5)
 
@@ -262,7 +269,8 @@ class PositionalEncoding(nn.Module):
 
 class Encoder(nn.Module):
 
-    def __init__(self, pretrained_vectors, embedding_head, dep_dim, dep_emb_dim, n_layers, dropout):
+    def __init__(self, pretrained_vectors, positionalembedding, embedding_head, dep_dim, dep_emb_dim, n_layers,
+                 dropout):
         super().__init__()
         self.dep_dim = dep_dim
         self.src_emb_dim = pretrained_vectors.shape[1]
@@ -273,21 +281,24 @@ class Encoder(nn.Module):
         self.dropout = dropout
 
         self.embedding_text = nn.Embedding.from_pretrained(pretrained_vectors)
+        self.positionalembedding = positionalembedding
         self.embedding_dep = nn.Embedding(self.dep_dim, self.dep_emb_dim)
         self.embedding_head = embedding_head
         self.rnn = nn.LSTM(self.emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
 
     def forward(self, src):
         text_embedded = self.embedding_text(src[0])
+        positionalembedding = self.positionalembedding(torch.LongTensor(src[3]))
         dep_embedded = self.embedding_dep(src[1])
         head_embedded = self.embedding_head(src[2])
-        embedded = torch.cat((text_embedded, dep_embedded + head_embedded), dim=2)
+        embedded = torch.cat((text_embedded + positionalembedding, dep_embedded + head_embedded), dim=2)
         outputs, (hidden, cell) = self.rnn(embedded)
         return hidden, cell
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, embedding_head, dep_dim, dep_emb_dim, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, positionalembedding, embedding_head, dep_dim, dep_emb_dim,
+                 n_layers, dropout, device):
         super().__init__()
 
         self.dep_dim = dep_dim
@@ -301,6 +312,7 @@ class Decoder(nn.Module):
         self.device = device
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
+        self.positionalembedding = positionalembedding
         self.embedding_dep = nn.Embedding(self.dep_dim, self.dep_emb_dim)
         self.embedding_head = embedding_head
         self.rnn = nn.LSTM(self.emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
@@ -310,6 +322,7 @@ class Decoder(nn.Module):
     def forward(self, src, hidden, cell):
         src = src.unsqueeze(1)
         text_embedded = self.embedding_src(src[0])
+        positionalembedding = self.positionalembedding(src[3])
         dep_embedded = self.embedding_dep(src[1])
         head_embedded = self.embedding_head(src[2])
         embedded = torch.cat((text_embedded, dep_embedded + head_embedded), dim=2)
@@ -401,8 +414,10 @@ N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 EMBEDDING_HEAD = PositionalEncoding(DEP_EMB_DIM, dropout=0, max_len=SPE_IDX, spe_idx=True)
-enc = Encoder(ORIG.vocab.vectors, EMBEDDING_HEAD, DEP_DIM, DEP_EMB_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, EMBEDDING_HEAD, DEP_DIM, DEP_EMB_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+POSITIONALEMBEDDING = PositionalEncoding(ORIG.vocab.vectors.shape[1], dropout=0, max_len=SPE_IDX, spe_idx=True)
+enc = Encoder(ORIG.vocab.vectors, POSITIONALEMBEDDING, EMBEDDING_HEAD, DEP_DIM, DEP_EMB_DIM, N_LAYERS, ENC_DROPOUT)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, POSITIONALEMBEDDING, EMBEDDING_HEAD, DEP_DIM, DEP_EMB_DIM, N_LAYERS,
+              DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
@@ -441,7 +456,7 @@ def train(model,
     epoch_loss = 0
 
     for i, batch in enumerate(iterator):
-        src = torch.stack((batch.original, batch.dep, batch.head), dim=0)
+        src = torch.stack((batch.original, batch.dep, batch.head, batch.position), dim=0)
         trg = batch.compressed
 
         try:
@@ -492,7 +507,7 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
 
     with torch.no_grad():
         for i, batch in enumerate(iterator):
-            src = torch.stack((batch.original, batch.dep, batch.head), dim=0)
+            src = torch.stack((batch.original, batch.dep, batch.head, batch.position), dim=0)
             trg = batch.compressed
 
             try:
