@@ -260,7 +260,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-EMBEDDING_HEAD = PositionalEncoding(DEP.vocab.vectors.shape[1], dropout=0, max_len=SPE_IDX, spe_idx=True)
+EMBEDDING_HEAD = PositionalEncoding(len(DEP.vocab), dropout=0, max_len=SPE_IDX, spe_idx=True)
 
 
 class Encoder(nn.Module):
