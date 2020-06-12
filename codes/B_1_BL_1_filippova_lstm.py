@@ -434,7 +434,7 @@ def train(model,
 
     for i, batch in enumerate(iterator):
         batch.head[batch.head == -1] = SPE_IDX  # set root to SPE_IDX (full zeros)
-        src = torch.stack((batch.original, batch.head_text, batch_head), dim=0)
+        src = torch.stack((batch.original, batch.head_text, batch.head), dim=0)
         trg = batch.compressed
 
         try:
