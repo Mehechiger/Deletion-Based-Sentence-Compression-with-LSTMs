@@ -86,10 +86,6 @@ else:
 
 logger("using device: %s\n" % DEVICE, verbose=VERBOSE)
 
-"""
-def splitter(text):
-    return text.split(" ")
-"""
 
 
 def give_label(tabular_dataset):
@@ -235,27 +231,14 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
                                                                     )
 
 
-class PriorityEntry(object):  # prevent queue from comparing data
-    """
-    source: https://stackoverflow.com/a/40205431
-    """
 
-    def __init__(self, priority, data):
-        self.data = data
-        self.priority = priority
-
-    def __lt__(self, other):
-        return self.priority < other.priority
 
 
 class Encoder(nn.Module):
 
     def __init__(self, pretrained_vectors, n_layers, dropout):
-        # def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
-        # self.emb_dim = pretrained_vectors.shape[1]
         self.emb_dim = pretrained_vectors.shape[1] * 2
-        # self.hid_dim = hid_dim
         self.hid_dim = self.emb_dim
         self.n_layers = n_layers
         self.dropout = dropout
@@ -264,7 +247,6 @@ class Encoder(nn.Module):
         self.rnn = nn.LSTM(self.emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
 
     def forward(self, src):
-        # embedded = self.embedding(src)
         text_embedded = self.embedding(src[0])
         head_text_embedded = self.embedding(src[1])
         embedded = torch.cat((text_embedded, head_text_embedded), dim=2)
@@ -273,15 +255,12 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    # def __init__(self, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
     def __init__(self, output_dim, pretrained_vectors, emb_input_dim, n_layers, dropout, device):
         super().__init__()
 
-        # self.emb_src_dim = pretrained_vectors.shape[1]
         self.emb_src_dim = pretrained_vectors.shape[1] * 2
         self.emb_input_dim = emb_input_dim
         self.emb_dim = self.emb_input_dim + self.emb_src_dim
-        # self.hid_dim = hid_dim
         self.hid_dim = self.emb_src_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
@@ -295,9 +274,7 @@ class Decoder(nn.Module):
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, input_, hidden, cell):
-        # src = src.unsqueeze(0)
         src = src.unsqueeze(1)
-        # embedded = self.embedding_src(src)
         text_embedded = self.embedding_src(src[0])
         head_text_embedded = self.embedding_src(src[1])
         embedded = torch.cat((text_embedded, head_text_embedded, self.embedding_input(input_)), dim=2)
@@ -323,13 +300,10 @@ class Seq2Seq(nn.Module):
             cp = 0  # coverage penalty - for attention mechanism
             return prob / lp + cp
 
-        # max_len = src.shape[0]
-        # batch_size = src.shape[1]
         max_len = src.shape[1]
         batch_size = src.shape[2]
         output_dim = self.decoder.output_dim
         input_ = input_.repeat(beam_width)
-        # src_ = src[0, :].repeat(beam_width)
         src_ = src[:, 0, :].repeat(1, beam_width)
         hidden = hidden.repeat(1, beam_width, 1)
         cell = cell.repeat(1, beam_width, 1)
@@ -375,7 +349,6 @@ class Seq2Seq(nn.Module):
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
-        # hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         hidden, cell = self.encoder(torch.flip(src[:, 1:, :], [1, ]))
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
@@ -383,7 +356,6 @@ class Seq2Seq(nn.Module):
             output_dim = self.decoder.output_dim
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
-                # src_ = src[t, :]
                 src_ = src[:, t, :]
                 input_ = trg[t, :]
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
@@ -438,7 +410,6 @@ def train(model,
     epoch_loss = 0
 
     for i, batch in enumerate(iterator):
-        # src = batch.original
         src = torch.stack((batch.original, batch.head_text), dim=0)
         trg = batch.compressed
 
@@ -490,7 +461,6 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
 
     with torch.no_grad():
         for i, batch in enumerate(iterator):
-            # src = batch.original
             src = torch.stack((batch.original, batch.head_text), dim=0)
             trg = batch.compressed
 
