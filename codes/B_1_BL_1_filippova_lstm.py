@@ -67,7 +67,9 @@ TEST_VERBOSE = 3
 # define AFFIX
 AFFIX = ""
 
-checkpoints = sorted([file_ for file_ in os.listdir(PATH_OUTPUT) if file_.split('.')[0][:17] == 'checkpoint_epoch_'])
+checkpoints = sorted([file_ for file_ in os.listdir(PATH_OUTPUT) if file_.split('.')[0][:17] == 'checkpoint_epoch_'],
+                     key = lambda x:int(x[:-3].split('_')[-1])
+                     )
 
 if checkpoints:
     logger('\n\nresume from checkpoint: %s\n%s\n' % (checkpoints[-1], datetime.now()), verbose=3)
@@ -590,7 +592,7 @@ for epoch in range(start_epoch, N_EPOCHS):
 
     if useless_epochs > 5 or epoch == N_EPOCHS - 1:
         if val_loss > best_val_loss:
-            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch) + '.pt')
+            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch+1) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         break
