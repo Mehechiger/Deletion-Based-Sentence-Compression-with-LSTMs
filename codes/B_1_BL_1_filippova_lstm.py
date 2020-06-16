@@ -265,12 +265,11 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, emb_input_dim, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, n_layers, dropout, device):
         super().__init__()
 
         self.emb_src_dim = pretrained_vectors.shape[1] * 2
-        self.emb_input_dim = emb_input_dim
-        self.emb_dim = self.emb_input_dim + self.emb_src_dim
+        self.emb_dim = self.emb_src_dim
         self.hid_dim = self.emb_src_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
@@ -278,16 +277,15 @@ class Decoder(nn.Module):
         self.device = device
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.embedding_input = lambda l: torch.eye(emb_input_dim)[l.view(-1)].unsqueeze(0).to(self.device)
         self.rnn = nn.LSTM(self.emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
         self.out = nn.Linear(self.hid_dim, self.output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, src, input_, hidden, cell):
+    def forward(self, src, hidden, cell):
         src = src.unsqueeze(1)
         text_embedded = self.embedding_src(src[0])
         head_text_embedded = self.embedding_src(src[1])
-        embedded = torch.cat((text_embedded, head_text_embedded, self.embedding_input(input_)), dim=2)
+        embedded = torch.cat((text_embedded, head_text_embedded), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
@@ -304,7 +302,7 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def batch_beam_predict(self, src, input_, hidden, cell, beam_width, lp_alpha=1):
+    def batch_beam_predict(self, src, hidden, cell, beam_width, lp_alpha=1):
         def normalize(prob, l, alpha=lp_alpha):
             lp = (5 + l) ** alpha / 6 ** alpha
             cp = 0  # coverage penalty - for attention mechanism
@@ -313,23 +311,19 @@ class Seq2Seq(nn.Module):
         max_len = src.shape[1]
         batch_size = src.shape[2]
         output_dim = self.decoder.output_dim
-        input_ = input_.repeat(beam_width)
         src_ = src[:, 0, :].repeat(1, beam_width)
         hidden = hidden.repeat(1, beam_width, 1)
         cell = cell.repeat(1, beam_width, 1)
-        output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+        output, hidden, cell = self.decoder(src_, hidden, cell)
 
         outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
         outputs[0, :, :] = output
         backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
         backtrack[0, :, :] = output.topk(k=1, dim=1).indices
 
-        input_ = output.topk(k=1, dim=1).indices
-
         for t in range(1, max_len):
-            # src_ = src[t, :].repeat(beam_width)
             src_ = src[:, t, :].repeat(1, beam_width)
-            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+            output, hidden, cell = self.decoder(src_, hidden, cell)
 
             probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
             probs += output
@@ -354,8 +348,6 @@ class Seq2Seq(nn.Module):
 
                 top_indices = top_indices.fmod(output_dim).t().reshape(-1)
                 backtrack[t, :, 0] = top_indices
-
-                input_ = top_indices
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
@@ -367,12 +359,10 @@ class Seq2Seq(nn.Module):
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
                 src_ = src[:, t, :]
-                input_ = trg[t, :]
-                output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+                output, hidden, cell = self.decoder(src_, hidden, cell)
                 outputs[t] = output
         else:
-            input_ = trg[0, :]
-            outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
+            outputs = self.batch_beam_predict(src, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
 
@@ -381,7 +371,7 @@ N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(ORIG.vocab.vectors, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, OUTPUT_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
@@ -542,8 +532,8 @@ for epoch in range(start_epoch, N_EPOCHS):
                        accumulation_steps=ACCUMULATION_STEPS,
                        beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
-                       #val_in_epoch=val_iterator,
-                       #in_epoch_steps=512 // BATCH_SIZE
+                       val_in_epoch=val_iterator,
+                       in_epoch_steps=512 // BATCH_SIZE
                        )
 
     end_time = time.time()
