@@ -14,11 +14,10 @@ import time
 import math
 import json
 from datetime import datetime
-
 import torch
 import torch.nn as nn
 from torch import optim
-from torchtext.data import Field, BucketIterator, TabularDataset
+from torchtext.data import Field, BucketIterator, Iterator, TabularDataset
 
 if not os.path.isdir("/content/"):
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
@@ -178,26 +177,31 @@ FIELDS = {"original": ("original", ORIG),
           }
 
 train = TabularDataset(
-    path=PATH_DATA + "B_0_training_data.ttjson",
+    path=PATH_DATA + "B_0_train_data.ttjson",
     format="json",
     fields=FIELDS,
 )
 give_label(train)
 
-val_test = TabularDataset(
-    path=PATH_DATA + "B_0_eval_data.ttjson",
+val = TabularDataset(
+    path=PATH_DATA + "B_0_val_data.ttjson",
     format="json",
     fields=FIELDS,
 )
-give_label(val_test)
-val, test = val_test.split(split_ratio=0.5)
+give_label(val)
+
+test = TabularDataset(
+    path=PATH_DATA + "B_0_test_data.ttjson",
+    format="json",
+    fields=FIELDS,
+)
+give_label(test)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
 DEP.build_vocab(train, min_freq=1)
 # TODO add <*ROOT*>
 COMPR.build_vocab(train, min_freq=1)
 
-"""
 """
 # for testing use only small amount of data
 # train, _ = train.split(split_ratio=0.0001)
@@ -206,6 +210,7 @@ val, _ = val.split(split_ratio=0.05)
 test, _ = test.split(split_ratio=0.05)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
+"""
 """
 """
 
@@ -223,11 +228,20 @@ if len(train.examples) + len(val.examples) + len(test.examples) >= 2000 and not 
 BATCH_SIZE = 32
 ACCUMULATION_STEPS = 1
 
-train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
-                                                                    batch_size=BATCH_SIZE,
-                                                                    sort=False,
-                                                                    device=DEVICE
-                                                                    )
+# https://www.jianshu.com/p/e5adb235399e
+train_iterator, val_iterator = BucketIterator.splits((train, val),
+                                                     batch_size=BATCH_SIZE,
+                                                     sort_key=lambda x: len(x.original),
+                                                     sort_within_batch=False,
+                                                     device=DEVICE
+                                                     )
+
+test_iterator = Iterator(test,
+                         batch_size=BATCH_SIZE,
+                         sort=False,
+                         sort_within_batch=False,
+                         device=DEVICE
+                         )
 
 
 class Encoder(nn.Module):
@@ -528,8 +542,8 @@ for epoch in range(start_epoch, N_EPOCHS):
                        accumulation_steps=ACCUMULATION_STEPS,
                        beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
-                       val_in_epoch=val_iterator,
-                       in_epoch_steps=512 // BATCH_SIZE
+                       #val_in_epoch=val_iterator,
+                       #in_epoch_steps=512 // BATCH_SIZE
                        )
 
     end_time = time.time()
