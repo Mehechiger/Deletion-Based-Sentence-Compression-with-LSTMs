@@ -67,7 +67,9 @@ TEST_VERBOSE = 3
 # define AFFIX
 AFFIX = ""
 
-checkpoints = sorted([file_ for file_ in os.listdir(PATH_OUTPUT) if file_.split('.')[0][:17] == 'checkpoint_epoch_'])
+checkpoints = sorted([file_ for file_ in os.listdir(PATH_OUTPUT) if file_.split('.')[0][:17] == 'checkpoint_epoch_'],
+                     key = lambda x:int(x[:-3].split('_')[-1])
+                     )
 
 if checkpoints:
     logger('\n\nresume from checkpoint: %s\n%s\n' % (checkpoints[-1], datetime.now()), verbose=3)
