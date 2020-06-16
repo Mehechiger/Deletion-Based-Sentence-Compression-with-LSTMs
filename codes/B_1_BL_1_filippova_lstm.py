@@ -225,6 +225,9 @@ logger("test: %s examples" % len(test.examples), verbose=VERBOSE)
 if len(train.examples) + len(val.examples) + len(test.examples) >= 2000 and not checkpoints:
     AFFIX = "_epoch_1"
     logger(None, verbose=4)
+if checkpoints:
+    AFFIX = "_epoch_"+str(int(checkpoints[-1][:-3].split('_')[-1])+1)
+    logger(None, verbose=4)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
