@@ -649,7 +649,7 @@ for epoch in range(start_epoch, N_EPOCHS):
 
     if useless_epochs > 5 or epoch == N_EPOCHS - 1:
         if val_loss > best_val_loss:
-            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch) + '.pt')
+            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch+1) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         break
