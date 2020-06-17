@@ -615,6 +615,19 @@ for epoch in range(start_epoch, N_EPOCHS):
 
     logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
 
+    if val_loss < best_val_loss:
+        if best_val_loss - val_loss >= 0.001:
+            useless_epochs = 0
+        else:
+            useless_epochs += 1
+        best_val_loss = val_loss
+        best_epoch = epoch
+    else:
+        useless_epochs += 1
+
+    logger('\nbest epoch so far at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
+           verbose=TEST_VERBOSE)
+
     if CUDA:
         torch.save({
             'epoch': epoch,
@@ -636,19 +649,6 @@ for epoch in range(start_epoch, N_EPOCHS):
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict()
         }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
-
-    if val_loss < best_val_loss:
-        if best_val_loss - val_loss >= 0.001:
-            useless_epochs = 0
-        else:
-            useless_epochs += 1
-        best_val_loss = val_loss
-        best_epoch = epoch
-    else:
-        useless_epochs += 1
-
-    logger('\nbest epoch so far at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
-           verbose=TEST_VERBOSE)
 
     if useless_epochs > 5 or epoch == N_EPOCHS - 1:
         if val_loss > best_val_loss:
