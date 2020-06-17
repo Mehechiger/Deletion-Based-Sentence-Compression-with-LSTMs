@@ -661,8 +661,12 @@ for epoch in range(start_epoch, N_EPOCHS):
 
     # update AFFIX if necessary
     if AFFIX:
-        AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
+        AFFIX = "_epoch_%s" % (epoch + 2)
         logger(None, verbose=4)
+
+if AFFIX:
+    AFFIX = "_test"
+    logger(None, verbose=4)
 
 logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
        verbose=TEST_VERBOSE)
