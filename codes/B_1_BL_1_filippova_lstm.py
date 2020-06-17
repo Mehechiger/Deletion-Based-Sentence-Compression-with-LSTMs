@@ -566,6 +566,18 @@ if checkpoints:
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     if CUDA:
         amp.load_state_dict(checkpoint['amp'])
+    if useless_epochs > 5 or epoch == N_EPOCHS - 1:
+        if AFFIX:
+            AFFIX = "_test"
+            logger(None, verbose=4)
+        logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
+               verbose=TEST_VERBOSE)
+
+        test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
+        res_outputter(test_res, "test_res")
+
+        logger(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
+        exit()
 else:
     start_epoch = 0
     best_val_loss = float("inf")
