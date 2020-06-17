@@ -68,7 +68,7 @@ TEST_VERBOSE = 3
 AFFIX = ""
 
 checkpoints = sorted([file_ for file_ in os.listdir(PATH_OUTPUT) if file_.split('.')[0][:17] == 'checkpoint_epoch_'],
-                     key = lambda x:int(x[:-3].split('_')[-1])
+                     key=lambda x: int(x[:-3].split('_')[-1])
                      )
 
 if checkpoints:
@@ -178,25 +178,16 @@ FIELDS = {"original": ("original", ORIG),
           "compressed": ("compressed", COMPR)
           }
 
-train = TabularDataset(
-    path=PATH_DATA + "B_0_train_data.ttjson",
+train, val, test = TabularDataset.splits(
+    path=PATH_DATA,
+    train="B_0_train_data.ttjson",
+    validation="B_0_val_data.ttjson",
+    test="B_0_test_data.ttjson",
     format="json",
-    fields=FIELDS,
+    fields=FIELDS
 )
 give_label(train)
-
-val = TabularDataset(
-    path=PATH_DATA + "B_0_val_data.ttjson",
-    format="json",
-    fields=FIELDS,
-)
 give_label(val)
-
-test = TabularDataset(
-    path=PATH_DATA + "B_0_test_data.ttjson",
-    format="json",
-    fields=FIELDS,
-)
 give_label(test)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
@@ -225,7 +216,7 @@ if len(train.examples) + len(val.examples) + len(test.examples) >= 2000 and not 
     AFFIX = "_epoch_1"
     logger(None, verbose=4)
 if checkpoints:
-    AFFIX = "_epoch_"+str(int(checkpoints[-1][:-3].split('_')[-1])+1)
+    AFFIX = "_epoch_" + str(int(checkpoints[-1][:-3].split('_')[-1]) + 1)
     logger(None, verbose=4)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
@@ -234,19 +225,12 @@ BATCH_SIZE = 32
 ACCUMULATION_STEPS = 1
 
 # https://www.jianshu.com/p/e5adb235399e
-train_iterator, val_iterator = BucketIterator.splits((train, val),
-                                                     batch_size=BATCH_SIZE,
-                                                     sort_key=lambda x: len(x.original),
-                                                     sort_within_batch=False,
-                                                     device=DEVICE
-                                                     )
-
-test_iterator = Iterator(test,
-                         batch_size=BATCH_SIZE,
-                         sort=False,
-                         sort_within_batch=False,
-                         device=DEVICE
-                         )
+train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
+                                                                    batch_size=BATCH_SIZE,
+                                                                    sort_key=lambda x: len(x.original),
+                                                                    sort_within_batch=False,
+                                                                    device=DEVICE
+                                                                    )
 
 
 class Encoder(nn.Module):
@@ -517,6 +501,18 @@ if checkpoints:
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     if CUDA:
         amp.load_state_dict(checkpoint['amp'])
+    if useless_epochs > 5 or start_epoch >= N_EPOCHS - 1:
+        if AFFIX:
+            AFFIX = "_test"
+            logger(None, verbose=4)
+        logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
+               verbose=TEST_VERBOSE)
+
+        test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
+        res_outputter(test_res, "test_res")
+
+        logger(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
+        exit()
 else:
     start_epoch = 0
     best_val_loss = float("inf")
@@ -537,8 +533,8 @@ for epoch in range(start_epoch, N_EPOCHS):
                        accumulation_steps=ACCUMULATION_STEPS,
                        beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
-                       #val_in_epoch=val_iterator,
-                       #in_epoch_steps=512 // BATCH_SIZE
+                       # val_in_epoch=val_iterator,
+                       # in_epoch_steps=512 // BATCH_SIZE
                        )
 
     end_time = time.time()
@@ -553,6 +549,19 @@ for epoch in range(start_epoch, N_EPOCHS):
     res_outputter(val_res, "val_res_epoch%s" % (epoch + 1))
 
     logger(f"\tVal Loss: {val_loss:.3f} | Val PPL: {math.exp(val_loss):7.3f}", verbose=VERBOSE)
+
+    if val_loss < best_val_loss:
+        if best_val_loss - val_loss >= 0.001:
+            useless_epochs = 0
+        else:
+            useless_epochs += 1
+        best_val_loss = val_loss
+        best_epoch = epoch
+    else:
+        useless_epochs += 1
+
+    logger('\nbest epoch so far at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
+           verbose=TEST_VERBOSE)
 
     if CUDA:
         torch.save({
@@ -576,30 +585,21 @@ for epoch in range(start_epoch, N_EPOCHS):
             'optimizer_state_dict': optimizer.state_dict()
         }, PATH_OUTPUT + 'checkpoint_epoch_' + str(epoch + 1) + '.pt')
 
-    if val_loss < best_val_loss:
-        if best_val_loss - val_loss >= 0.001:
-            useless_epochs = 0
-        else:
-            useless_epochs += 1
-        best_val_loss = val_loss
-        best_epoch = epoch
-    else:
-        useless_epochs += 1
-
-    logger('\nbest epoch so far at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
-           verbose=TEST_VERBOSE)
-
     if useless_epochs > 5 or epoch == N_EPOCHS - 1:
         if val_loss > best_val_loss:
-            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch+1) + '.pt')
+            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch + 1) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         break
 
     # update AFFIX if necessary
     if AFFIX:
-        AFFIX = "_epoch_%s" % (epoch + 2) if epoch < N_EPOCHS - 1 else "_test"
+        AFFIX = "_epoch_%s" % (epoch + 2)
         logger(None, verbose=4)
+
+if AFFIX:
+    AFFIX = "_test"
+    logger(None, verbose=4)
 
 logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
        verbose=TEST_VERBOSE)
