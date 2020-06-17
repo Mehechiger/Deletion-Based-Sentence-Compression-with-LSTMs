@@ -566,7 +566,7 @@ if checkpoints:
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     if CUDA:
         amp.load_state_dict(checkpoint['amp'])
-    if useless_epochs > 5 or epoch == N_EPOCHS - 1:
+    if useless_epochs > 5 or start_epoch >= N_EPOCHS - 1:
         if AFFIX:
             AFFIX = "_test"
             logger(None, verbose=4)
