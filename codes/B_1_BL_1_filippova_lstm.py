@@ -68,7 +68,7 @@ TEST_VERBOSE = 3
 AFFIX = ""
 
 checkpoints = sorted([file_ for file_ in os.listdir(PATH_OUTPUT) if file_.split('.')[0][:17] == 'checkpoint_epoch_'],
-                     key = lambda x:int(x[:-3].split('_')[-1])
+                     key=lambda x: int(x[:-3].split('_')[-1])
                      )
 
 if checkpoints:
@@ -181,34 +181,27 @@ FIELDS = {"original": ("original", ORIG),
           "compressed": ("compressed", COMPR)
           }
 
-train = TabularDataset(
-    path=PATH_DATA + "B_0_train_data.ttjson",
+train, val, test = TabularDataset.splits(
+    path=PATH_DATA,
+    train="B_0_train_data.ttjson",
+    validation="B_0_val_data.ttjson",
+    test="B_0_test_data.ttjson",
     format="json",
-    fields=FIELDS,
+    fields=FIELDS
 )
+
 train.fields['position'] = POSITION
+val.fields['position'] = POSITION
+test.fields['position'] = POSITION
 for example in train.examples:
     setattr(example, 'position', list(range(len(example.original))))
-give_label(train)
-
-val = TabularDataset(
-    path=PATH_DATA + "B_0_val_data.ttjson",
-    format="json",
-    fields=FIELDS,
-)
-val.fields['position'] = POSITION
 for example in val.examples:
     setattr(example, 'position', list(range(len(example.original))))
-give_label(val)
-
-test = TabularDataset(
-    path=PATH_DATA + "B_0_test_data.ttjson",
-    format="json",
-    fields=FIELDS,
-)
-test.fields['position'] = POSITION
 for example in test.examples:
     setattr(example, 'position', list(range(len(example.original))))
+
+give_label(train)
+give_label(val)
 give_label(test)
 
 ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VECTORS_CACHE)
@@ -237,7 +230,7 @@ if len(train.examples) + len(val.examples) + len(test.examples) >= 2000 and not 
     AFFIX = "_epoch_1"
     logger(None, verbose=4)
 if checkpoints:
-    AFFIX = "_epoch_"+str(int(checkpoints[-1][:-3].split('_')[-1])+1)
+    AFFIX = "_epoch_" + str(int(checkpoints[-1][:-3].split('_')[-1]) + 1)
     logger(None, verbose=4)
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
@@ -600,8 +593,8 @@ for epoch in range(start_epoch, N_EPOCHS):
                        accumulation_steps=ACCUMULATION_STEPS,
                        beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
-                       #val_in_epoch=val_iterator,
-                       #in_epoch_steps=512 // BATCH_SIZE
+                       # val_in_epoch=val_iterator,
+                       # in_epoch_steps=512 // BATCH_SIZE
                        )
 
     end_time = time.time()
@@ -654,7 +647,7 @@ for epoch in range(start_epoch, N_EPOCHS):
 
     if useless_epochs > 5 or epoch == N_EPOCHS - 1:
         if val_loss > best_val_loss:
-            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch+1) + '.pt')
+            checkpoint = torch.load(PATH_OUTPUT + 'checkpoint_epoch_' + str(best_epoch + 1) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         break
