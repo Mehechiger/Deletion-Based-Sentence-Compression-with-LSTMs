@@ -239,19 +239,12 @@ BATCH_SIZE = 32
 ACCUMULATION_STEPS = 1
 
 # https://www.jianshu.com/p/e5adb235399e
-train_iterator, val_iterator = BucketIterator.splits((train, val),
-                                                     batch_size=BATCH_SIZE,
-                                                     sort_key=lambda x: len(x.original),
-                                                     sort_within_batch=False,
-                                                     device=DEVICE
-                                                     )
-
-test_iterator = Iterator(test,
-                         batch_size=BATCH_SIZE,
-                         sort=False,
-                         sort_within_batch=False,
-                         device=DEVICE
-                         )
+train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
+                                                                    batch_size=BATCH_SIZE,
+                                                                    sort_key=lambda x: len(x.original),
+                                                                    sort_within_batch=False,
+                                                                    device=DEVICE
+                                                                    )
 
 
 class PositionalEncoding(nn.Module):
