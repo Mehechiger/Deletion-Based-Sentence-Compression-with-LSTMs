@@ -197,6 +197,7 @@ ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VEC
 COMPR.build_vocab(train, min_freq=1)
 
 """
+torch.autograd.set_detect_anomaly(True)
 # for testing use only small amount of data
 train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.001)
@@ -314,7 +315,7 @@ class Decoder(nn.Module):
         self.rnns = nn.ModuleList()
         for i in range(n_layers):
             input_size = self.emb_src_dim if i == 0 else self.hid_dim
-            #input_size += self.hid_dim  # attn output size
+            # input_size += self.hid_dim  # attn output size
             self.rnns.append(nn.LSTM(input_size, self.hid_dim, 1))
         self.out = nn.Linear(hid_dim, output_dim)
         # self.softmax = nn.LogSoftmax(dim=1)
@@ -335,8 +336,8 @@ class Decoder(nn.Module):
                                dim=0
                                )
         # rnn_input = torch.cat((embedded, weighted), dim=2)
-        # hidden_s = []
-        # cell_s = []
+        hidden_s = []
+        cell_s = []
         for i in range(self.n_layers):
             if i == 0:
                 rnn_input = embedded
@@ -344,15 +345,13 @@ class Decoder(nn.Module):
                 rnn_input = F.dropout(output, self.dropout, inplace=True)
             # rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
             rnn_input += weighted[i]
-            # output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
             output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
-            with torch.no_grad():
-                hidden[i] = hidden_[0]
-                cell[i] = cell_[0]
-            # hidden_s.append(hidden_)
-            # cell_s.append(cell_)
-        # hidden = torch.cat(hidden_s, dim=0)
-        # cell = torch.cat(cell_s, dim=0)
+            # hidden[i] = hidden_[0]
+            # cell[i] = cell_[0]
+            hidden_s.append(hidden_)
+            cell_s.append(cell_)
+        hidden = torch.cat(hidden_s, dim=0)
+        cell = torch.cat(cell_s, dim=0)
 
         # output, (hidden, cell) = self.rnn(rnn_input, (hidden, cell))
         # prediction = self.softmax(self.out(output.squeeze(0)))
