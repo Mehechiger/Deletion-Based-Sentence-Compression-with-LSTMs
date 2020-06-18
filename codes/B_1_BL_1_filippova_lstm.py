@@ -315,7 +315,7 @@ class Decoder(nn.Module):
         self.rnns = nn.ModuleList()
         for i in range(n_layers):
             input_size = self.emb_src_dim if i == 0 else self.hid_dim
-            # input_size += self.hid_dim  # attn output size
+            input_size += self.hid_dim  # attn output size
             self.rnns.append(nn.LSTM(input_size, self.hid_dim, 1))
         self.out = nn.Linear(hid_dim, output_dim)
         # self.softmax = nn.LogSoftmax(dim=1)
@@ -343,8 +343,8 @@ class Decoder(nn.Module):
                 rnn_input = embedded
             else:
                 rnn_input = F.dropout(output, self.dropout)
-            # rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
-            rnn_input += weighted[i]
+            rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
+            #rnn_input += weighted[i]
             output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
             # hidden[i] = hidden_[0]
             # cell[i] = cell_[0]
