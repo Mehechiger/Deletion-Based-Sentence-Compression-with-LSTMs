@@ -262,62 +262,46 @@ class Attention(nn.Module):
         self.v = nn.Parameter(torch.rand(n_layers, dec_hid_dim))
         # self.softmax = nn.Softmax(dim=2)
 
-    def forward(self, hidden, cell, encoder_outputs):
+    def forward(self, hidden_i, cell_i, attn_input, i_layers):
         # hidden = [batch size, dec hid dim]
         # encoder_outputs = [src sent len, batch size, enc hid dim * 2]
-        batch_size = encoder_outputs.shape[1]
-        src_len = encoder_outputs.shape[0]
+        batch_size = attn_input.shape[1]
+        src_len = attn_input.shape[0]
         # 重复操作，让隐藏状态的第二个维度和encoder相同
         # hidden = hidden.unsqueeze(1).repeat(1, src_len, 1)
-        # hidden = hidden.unsqueeze(2).repeat(1, 1, src_len, 1)
-        # cell = cell.unsqueeze(2).repeat(1, 1, src_len, 1)
+        hidden_i = hidden_i.unsqueeze(1).repeat(1, src_len, 1)
+        cell_i = cell_i.unsqueeze(1).repeat(1, src_len, 1)
         # 该函数按指定的向量来重新排列一个数组，在这里是调整encoder输出的维度顺序，在后面能够进行比较
         # encoder_outputs = encoder_outputs.permute(1, 0, 2)
         # encoder_outputs = encoder_outputs.unsqueeze(0).permute(0, 2, 1, 3)
+        attn_input = attn_input.permute(1, 0, 2)
         # hidden = [batch size, src sent len, dec hid dim]
         # encoder_outputs = [batch size, src sent len, enc hid dim * 2]
         # encoder_outputs = encoder_outputs.repeat(self.n_layers, 1, 1, 1)
         # 开始计算hidden和encoder_outputs之间的匹配值
         # energy = torch.tanh(self.attn(torch.cat((hidden, encoder_outputs), dim=2)))
-        # energy = torch.tanh(self.attn(torch.cat((hidden, cell, encoder_outputs), dim=3)))
-        energy = torch.tanh(self.attn(torch.cat((hidden.unsqueeze(2) \
-                                                 .repeat(1, 1, src_len, 1),
-
-                                                 cell.unsqueeze(2) \
-                                                 .repeat(1, 1, src_len, 1),
-
-                                                 encoder_outputs \
-                                                 .unsqueeze(0) \
-                                                 .permute(0, 2, 1, 3) \
-                                                 .repeat(self.n_layers, 1, 1, 1)
-                                                 ),
-                                                dim=3
-                                                ))) \
-            .permute(0, 1, 3, 2)
-        del hidden, cell, encoder_outputs
+        states = torch.cat((hidden_i, cell_i, attn_input), dim=2)
+        del hidden_i, cell_i, attn_input
+        energy = torch.tanh(self.attn(states))
         # energy = [batch size, src sent len, dec hid dim]
         # 调整energy的排序
         # energy = energy.permute(0, 2, 1)
         # energy = energy.permute(0, 1, 3, 2)
+        energy = energy.permute(0, 2, 1)
         # energy = [batch size, dec hid dim, src sent len]
 
         # v = [dec hid dim]
         # v = self.v.repeat(batch_size, 1).unsqueeze(1)
-        v = self.v.unsqueeze(1).unsqueeze(1).repeat(1, batch_size, 1, 1)
+        # v = self.v.unsqueeze(1).unsqueeze(1).repeat(1, batch_size, 1, 1)
+        v = self.v[i_layers].repeat(batch_size, 1).unsqueeze(1)
         # v = [batch_size, 1, dec hid dim] 注意这个bmm的作用，对存储在两个批batch1和batch2内的矩阵进行批矩阵乘操
         # attention = torch.bmm(v, energy).squeeze(1)
-        #attention = torch.stack([torch.bmm(v[i], energy[i]).squeeze(1) for i in range(self.n_layers)], dim=0)
+        # attention = torch.stack([torch.bmm(v[i], energy[i]).squeeze(1) for i in range(self.n_layers)], dim=0)
+        attention = torch.bmm(v, energy).squeeze(1)
         # attention=[batch_size, src_len]
         # return nn.Softmax(attention, dim=1)
         # return self.softmax(attention)
-        #return F.softmax(attention, dim=2)
-        return F.softmax(torch.stack([torch.bmm(v[i], energy[i]).squeeze(1)
-                                      for i in range(self.n_layers)
-                                      ],
-                                     dim=0
-                                     ),
-                         dim=2
-                         )
+        return F.softmax(attention, dim=1)
 
 
 class Decoder(nn.Module):
@@ -348,24 +332,30 @@ class Decoder(nn.Module):
 
         # attn = self.attention(hidden, cell, encoder_outputs)
         # attn = attn.unsqueeze(1)
-        attn = self.attention(hidden, cell, encoder_outputs).unsqueeze(2)
-        encoder_outputs = encoder_outputs.permute(1, 0, 2)
+        # attn = self.attention(hidden, cell, encoder_outputs).unsqueeze(2)
+        # encoder_outputs = encoder_outputs.permute(1, 0, 2)
         # weighted = torch.bmm(attn, encoder_outputs)
         # weighted = weighted.permute(1, 0, 2)
-        weighted = torch.stack([torch.bmm(attn[i], encoder_outputs).permute(1, 0, 2)
-                                for i in range(self.n_layers)
-                                ],
-                               dim=0
-                               )
+        # weighted = torch.stack([torch.bmm(attn[i], encoder_outputs).permute(1, 0, 2) for i in range(self.n_layers) ], dim=0 )
         # rnn_input = torch.cat((embedded, weighted), dim=2)
         hidden_s = []
         cell_s = []
         for i in range(self.n_layers):
             if i == 0:
                 rnn_input = embedded
+                attn_input = encoder_outputs
             else:
                 rnn_input = F.dropout(output, self.dropout)
-            rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
+                attn_input = output
+
+            attn = self.attention(hidden[i], cell[i], attn_input, i).unsqueeze(1)
+            # encoder_outputs = encoder_outputs.permute(1, 0, 2)
+            attn_input = attn_input.permute(1, 0, 2)
+            # weighted = torch.stack([torch.bmm(attn[i], encoder_outputs).permute(1, 0, 2) for i in range(self.n_layers) ], dim=0 )
+            weighted = torch.bmm(attn, attn_input).permute(1, 0, 2)
+
+            # rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
+            rnn_input = torch.cat((rnn_input, weighted), dim=2)
             # rnn_input += weighted[i]
             output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
             # hidden[i] = hidden_[0]
