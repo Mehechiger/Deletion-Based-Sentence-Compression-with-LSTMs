@@ -577,6 +577,7 @@ if checkpoints:
         res_outputter(test_res, "test_res")
 
         logger(f"\tTest Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f}", verbose=VERBOSE)
+
         exit()
 else:
     start_epoch = 0
