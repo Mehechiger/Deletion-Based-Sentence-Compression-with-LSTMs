@@ -1,8 +1,10 @@
 # filippova 2015
 # base structure: https://www.jianshu.com/p/dbf00b590c70
+# - with attention: https://www.jianshu.com/p/4dd65ec4654c
+# - - https://zhuanlan.zhihu.com/p/35955689
+# - - https://stackoverflow.com/a/49241693
 # gpu performance improvement: https://zhuanlan.zhihu.com/p/65002487
 # beam search:
-# - priority queue: github.com/budzianowski/PyTorch-Beam-Search-Decoding
 # - batch beam search: https://medium.com/the-artificial-impostor/implementing-beam-search-part-1-4f53482daabe
 # - beam search prob normalizations:
 # - - https://www.youtube.com/watch?v=gb__z7LlN_4
@@ -194,14 +196,14 @@ ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VEC
 COMPR.build_vocab(train, min_freq=1)
 
 """
+"""
 # for testing use only small amount of data
-#train, _ = train.split(split_ratio=0.0001)
-val, _ = val.split(split_ratio=0.05)
+train, _ = train.split(split_ratio=0.0001)
+val, _ = val.split(split_ratio=0.001)
 # _, val = train.split(split_ratio=0.9995)
-test, _ = test.split(split_ratio=0.05)
+test, _ = test.split(split_ratio=0.001)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
-"""
 """
 """
 
@@ -234,7 +236,6 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
 class Encoder(nn.Module):
     def __init__(self, pretrained_vectors, hid_dim, n_layers, dropout):
         super().__init__()
-        # self.input_dim = input_dim
         self.emb_dim = pretrained_vectors.shape[1]
         self.hid_dim = hid_dim
         self.n_layers = n_layers
@@ -245,28 +246,107 @@ class Encoder(nn.Module):
     def forward(self, src):
         embedded = self.embedding(src)
         outputs, (hidden, cell) = self.rnn(embedded)
-        return hidden, cell
+        return outputs, hidden, cell
+
+
+class Attention(nn.Module):
+    def __init__(self, enc_hid_dim, dec_hid_dim, n_layers):
+        super().__init__()
+        self.enc_hid_dim = enc_hid_dim
+        self.dec_hid_dim = dec_hid_dim
+        self.n_layers = n_layers
+        # self.attn = nn.Linear((enc_hid_dim * 2) + dec_hid_dim, dec_hid_dim)
+        self.attn = nn.Linear(enc_hid_dim + enc_hid_dim + dec_hid_dim, dec_hid_dim)
+        self.v = nn.Parameter(torch.rand(n_layers, dec_hid_dim))
+        self.softmax = nn.Softmax(dim=2)
+
+    def forward(self, hidden, cell, encoder_outputs):
+        # hidden = [batch size, dec hid dim]
+        # encoder_outputs = [src sent len, batch size, enc hid dim * 2]
+        batch_size = encoder_outputs.shape[1]
+        src_len = encoder_outputs.shape[0]
+        # 重复操作，让隐藏状态的第二个维度和encoder相同
+        # hidden = hidden.unsqueeze(1).repeat(1, src_len, 1)
+        hidden = hidden.unsqueeze(2).repeat(1, 1, src_len, 1)
+        cell = cell.unsqueeze(2).repeat(1, 1, src_len, 1)
+        # 该函数按指定的向量来重新排列一个数组，在这里是调整encoder输出的维度顺序，在后面能够进行比较
+        # encoder_outputs = encoder_outputs.permute(1, 0, 2)
+        encoder_outputs = encoder_outputs.unsqueeze(0).permute(0, 2, 1, 3)
+        # hidden = [batch size, src sent len, dec hid dim]
+        # encoder_outputs = [batch size, src sent len, enc hid dim * 2]
+        encoder_outputs = encoder_outputs.repeat(hidden.shape[0], 1, 1, 1)
+        # 开始计算hidden和encoder_outputs之间的匹配值
+        # energy = torch.tanh(self.attn(torch.cat((hidden, encoder_outputs), dim=2)))
+        energy = torch.tanh(self.attn(torch.cat((hidden, cell, encoder_outputs), dim=3)))
+        # energy = [batch size, src sent len, dec hid dim]
+        # 调整energy的排序
+        # energy = energy.permute(0, 2, 1)
+        energy = energy.permute(0, 1, 3, 2)
+        # energy = [batch size, dec hid dim, src sent len]
+
+        # v = [dec hid dim]
+        # v = self.v.repeat(batch_size, 1).unsqueeze(1)
+        v = self.v.unsqueeze(1).unsqueeze(1).repeat(1, batch_size, 1, 1)
+        # v = [batch_size, 1, dec hid dim] 注意这个bmm的作用，对存储在两个批batch1和batch2内的矩阵进行批矩阵乘操
+        # attention = torch.bmm(v, energy).squeeze(1)
+        attention = torch.stack([torch.bmm(v[i], energy[i]).squeeze(1) for i in range(hidden.shape[0])], dim=0)
+        # attention=[batch_size, src_len]
+        # return nn.Softmax(attention, dim=1)
+        return self.softmax(attention)
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, hid_dim, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, attention, hid_dim, n_layers, dropout, device):
         super().__init__()
 
         self.emb_src_dim = pretrained_vectors.shape[1]
+        self.attention = attention
         self.hid_dim = hid_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
         self.device = device
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
+        # self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
+        self.rnns = nn.ModuleList()
+        for i in range(n_layers):
+            input_size = self.emb_src_dim if i == 0 else self.hid_dim
+            input_size += self.hid_dim  # attn output size
+            self.rnns.append(nn.LSTM(input_size, self.hid_dim, 1, dropout=dropout))
         self.out = nn.Linear(hid_dim, output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, src, hidden, cell):
+    def forward(self, src, hidden, cell, encoder_outputs):
         src = src.unsqueeze(0)
         embedded = self.embedding_src(src)
-        output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
+
+        # attn = self.attention(hidden, cell, encoder_outputs)
+        # attn = attn.unsqueeze(1)
+        attn = self.attention(hidden, cell, encoder_outputs).unsqueeze(2)
+        encoder_outputs = encoder_outputs.permute(1, 0, 2)
+        # weighted = torch.bmm(attn, encoder_outputs)
+        # weighted = weighted.permute(1, 0, 2)
+        weighted = torch.stack([torch.bmm(attn[i], encoder_outputs).permute(1, 0, 2)
+                                for i in range(self.n_layers)
+                                ],
+                               dim=0
+                               )
+        # rnn_input = torch.cat((embedded, weighted), dim=2)
+        hidden_s = []
+        cell_s = []
+        for i in range(self.n_layers):
+            if i == 0:
+                rnn_input = embedded
+            else:
+                rnn_input = output
+            rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
+            output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
+            hidden_s.append(hidden_)
+            cell_s.append(cell_)
+        hidden = torch.cat(hidden_s, dim=0)
+        cell = torch.cat(cell_s, dim=0)
+
+        # output, (hidden, cell) = self.rnn(rnn_input, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
 
@@ -282,7 +362,7 @@ class Seq2Seq(nn.Module):
         assert encoder.hid_dim == decoder.hid_dim, "Hidden dimensions of encoder and decoder must be equal!"
         assert encoder.n_layers == decoder.n_layers, "Encoder and decoder must have equal number of layers!"
 
-    def batch_beam_predict(self, src, hidden, cell, beam_width, lp_alpha=1):
+    def batch_beam_predict(self, src, hidden, cell, encoder_outputs, beam_width, lp_alpha=1):
         def normalize(prob, l, alpha=lp_alpha):
             lp = (5 + l) ** alpha / 6 ** alpha
             cp = 0  # coverage penalty - for attention mechanism
@@ -294,7 +374,8 @@ class Seq2Seq(nn.Module):
         src_ = src[0, :].repeat(beam_width)
         hidden = hidden.repeat(1, beam_width, 1)
         cell = cell.repeat(1, beam_width, 1)
-        output, hidden, cell = self.decoder(src_, hidden, cell)
+        encoder_outputs = encoder_outputs.repeat(1, beam_width, 1)
+        output, hidden, cell = self.decoder(src_, hidden, cell, encoder_outputs)
 
         outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
         outputs[0, :, :] = output
@@ -303,7 +384,7 @@ class Seq2Seq(nn.Module):
 
         for t in range(1, max_len):
             src_ = src[t, :].repeat(beam_width)
-            output, hidden, cell = self.decoder(src_, hidden, cell)
+            output, hidden, cell = self.decoder(src_, hidden, cell, encoder_outputs)
 
             probs = outputs[:t, :, :].gather(dim=2, index=backtrack[:t, :, :]).sum(dim=0).repeat(1, output_dim)
             probs += output
@@ -332,7 +413,7 @@ class Seq2Seq(nn.Module):
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
-        hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
+        encoder_outputs, hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
             max_len = trg.shape[0]
@@ -340,10 +421,10 @@ class Seq2Seq(nn.Module):
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
             for t in range(max_len):
                 src_ = src[t, :]
-                output, hidden, cell = self.decoder(src_, hidden, cell)
+                output, hidden, cell = self.decoder(src_, hidden, cell, encoder_outputs)
                 outputs[t] = output
         else:
-            outputs = self.batch_beam_predict(src, hidden, cell, beam_width, LP_ALPHA)
+            outputs = self.batch_beam_predict(src, hidden, cell, encoder_outputs, beam_width, LP_ALPHA)
         return outputs
 
 
@@ -353,7 +434,8 @@ N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
 enc = Encoder(ORIG.vocab.vectors, HID_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
+attn = Attention(HID_DIM, HID_DIM, N_LAYERS)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, attn, HID_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
