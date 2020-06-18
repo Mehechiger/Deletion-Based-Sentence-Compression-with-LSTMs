@@ -505,7 +505,7 @@ if checkpoints:
         if AFFIX:
             AFFIX = "_test"
             logger(None, verbose=4)
-        logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, start_epoch, best_val_loss),
+        logger('\nbest epoch at %s / %s with val loss at %s\n' % (best_epoch + 1, epoch + 1, best_val_loss),
                verbose=TEST_VERBOSE)
 
         test_loss, test_res = evaluate(model, test_iterator, criterion, beam_width=BEAM_WIDTH, verbose=TEST_VERBOSE)
