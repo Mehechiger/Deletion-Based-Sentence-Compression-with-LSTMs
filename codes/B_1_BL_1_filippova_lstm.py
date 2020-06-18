@@ -341,7 +341,7 @@ class Decoder(nn.Module):
             if i == 0:
                 rnn_input = embedded
             else:
-                rnn_input = F.dropout(output, self.dropout, inplace=True)
+                rnn_input = F.dropout(output, self.dropout)
             # rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
             rnn_input += weighted[i]
             # output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
