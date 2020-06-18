@@ -18,8 +18,9 @@ import json
 from datetime import datetime
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import optim
-from torchtext.data import Field, BucketIterator, Iterator, TabularDataset
+from torchtext.data import Field, BucketIterator, TabularDataset
 
 if not os.path.isdir("/content/"):
     VECTORS_CACHE = "/Users/mehec/Google Drive/Colab_tmp/vector_cache"
@@ -258,7 +259,7 @@ class Attention(nn.Module):
         # self.attn = nn.Linear((enc_hid_dim * 2) + dec_hid_dim, dec_hid_dim)
         self.attn = nn.Linear(enc_hid_dim + enc_hid_dim + dec_hid_dim, dec_hid_dim)
         self.v = nn.Parameter(torch.rand(n_layers, dec_hid_dim))
-        self.softmax = nn.Softmax(dim=2)
+        # self.softmax = nn.Softmax(dim=2)
 
     def forward(self, hidden, cell, encoder_outputs):
         # hidden = [batch size, dec hid dim]
@@ -292,7 +293,8 @@ class Attention(nn.Module):
         attention = torch.stack([torch.bmm(v[i], energy[i]).squeeze(1) for i in range(hidden.shape[0])], dim=0)
         # attention=[batch_size, src_len]
         # return nn.Softmax(attention, dim=1)
-        return self.softmax(attention)
+        # return self.softmax(attention)
+        return F.softmax(attention, dim=2)
 
 
 class Decoder(nn.Module):
@@ -305,16 +307,17 @@ class Decoder(nn.Module):
         self.output_dim = output_dim
         self.n_layers = n_layers
         self.device = device
+        self.dropout = dropout
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
         # self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
         self.rnns = nn.ModuleList()
         for i in range(n_layers):
             input_size = self.emb_src_dim if i == 0 else self.hid_dim
-            input_size += self.hid_dim  # attn output size
-            self.rnns.append(nn.LSTM(input_size, self.hid_dim, 1, dropout=dropout))
+            #input_size += self.hid_dim  # attn output size
+            self.rnns.append(nn.LSTM(input_size, self.hid_dim, 1))
         self.out = nn.Linear(hid_dim, output_dim)
-        self.softmax = nn.LogSoftmax(dim=1)
+        # self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, hidden, cell, encoder_outputs):
         src = src.unsqueeze(0)
@@ -332,22 +335,27 @@ class Decoder(nn.Module):
                                dim=0
                                )
         # rnn_input = torch.cat((embedded, weighted), dim=2)
-        hidden_s = []
-        cell_s = []
+        # hidden_s = []
+        # cell_s = []
         for i in range(self.n_layers):
             if i == 0:
                 rnn_input = embedded
             else:
-                rnn_input = output
-            rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
+                rnn_input = F.dropout(output, self.dropout, inplace=True)
+            # rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
+            rnn_input += weighted[i]
+            # output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
             output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
-            hidden_s.append(hidden_)
-            cell_s.append(cell_)
-        hidden = torch.cat(hidden_s, dim=0)
-        cell = torch.cat(cell_s, dim=0)
+            hidden[i] = hidden_[0]
+            cell[i] = cell_[0]
+            # hidden_s.append(hidden_)
+            # cell_s.append(cell_)
+        # hidden = torch.cat(hidden_s, dim=0)
+        # cell = torch.cat(cell_s, dim=0)
 
         # output, (hidden, cell) = self.rnn(rnn_input, (hidden, cell))
-        prediction = self.softmax(self.out(output.squeeze(0)))
+        # prediction = self.softmax(self.out(output.squeeze(0)))
+        prediction = F.log_softmax(self.out(output.squeeze(0)), dim=1)
         return prediction, hidden, cell
 
 
