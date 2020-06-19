@@ -166,7 +166,7 @@ TAG = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 DEP = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 HEAD = Field(use_vocab=False, init_token=SPE_IDX, eos_token=SPE_IDX, pad_token=SPE_IDX, unk_token=None)
 HEAD_TEXT = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
-DEPTH = Field(use_vocab=False, init_token=SPE_IDX, eos_token=SPE_IDX, pad_token=SPE_IDX, unk_token=None)
+DEPTH = Field(use_vocab=False, init_token=-1, eos_token=-1, pad_token=-1, unk_token=None)
 COMPR = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
 FIELDS = {"original": ("original", ORIG),
@@ -174,9 +174,9 @@ FIELDS = {"original": ("original", ORIG),
           # "pos": ("pos", POS),
           # "tag":("tag", TAG),
           # "dep":("dep", DEP),
-          "head": ("head", HEAD),
+          # "head": ("head", HEAD),
           # "head_text": ("head_text", HEAD_TEXT),
-          # "depth":("depth", DEPTH),
+          "depth": ("depth", DEPTH),
           "compressed": ("compressed", COMPR)
           }
 
@@ -234,40 +234,9 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
                                                                     )
 
 
-class PositionalEncoding(nn.Module):
-    """
-    source: attention is all you need & https://pytorch.org/tutorials/beginner/transformer_tutorial.html
-    """
-
-    def __init__(self, d_model, dropout=0.1, max_len=5000, spe_idx=False):
-        super(PositionalEncoding, self).__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        if spe_idx:
-            max_len += 1
-
-        pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0).transpose(0, 1)
-        self.register_buffer('pe', pe)
-
-        if spe_idx:
-            pe[max_len - 1] = 0.
-
-    def forward(self, x):
-        x = self.pe[:x.size(0), :]
-        return self.dropout(x)
-
-
-EMBEDDING_HEAD = PositionalEncoding(ORIG.vocab.vectors.shape[1], dropout=0, max_len=SPE_IDX, spe_idx=True)
-
-
 class Encoder(nn.Module):
 
-    def __init__(self, pretrained_vectors, embedding_head, n_layers, dropout):
+    def __init__(self, pretrained_vectors, n_layers, dropout):
         super().__init__()
         self.src_emb_dim = pretrained_vectors.shape[1]
         self.hid_dim = self.src_emb_dim
@@ -275,19 +244,17 @@ class Encoder(nn.Module):
         self.dropout = dropout
 
         self.embedding_text = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.embedding_head = embedding_head
-        self.rnn = nn.LSTM(self.src_emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
+        self.rnn = nn.LSTM(self.src_emb_dim + 1, self.hid_dim, self.n_layers, dropout=self.dropout)
 
     def forward(self, src):
         text_embedded = self.embedding_text(src[0])
-        head_embedded = self.embedding_head(src[1])
-        embedded = text_embedded + head_embedded
+        embedded = torch.cat((text_embedded, src[1].float().unsqueeze(2)), dim=2)
         outputs, (hidden, cell) = self.rnn(embedded)
         return hidden, cell
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, embedding_head, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, n_layers, dropout, device):
         super().__init__()
 
         self.src_emb_dim = pretrained_vectors.shape[1]
@@ -298,16 +265,14 @@ class Decoder(nn.Module):
         self.device = device
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.embedding_head = embedding_head
-        self.rnn = nn.LSTM(self.src_emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
+        self.rnn = nn.LSTM(self.src_emb_dim + 1, self.hid_dim, self.n_layers, dropout=self.dropout)
         self.out = nn.Linear(self.hid_dim, self.output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, hidden, cell):
         src = src.unsqueeze(1)
         text_embedded = self.embedding_src(src[0])
-        head_embedded = self.embedding_head(src[1])
-        embedded = text_embedded + head_embedded
+        embedded = torch.cat((text_embedded, src[1].float().unsqueeze(2)), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
@@ -393,8 +358,8 @@ OUTPUT_DIM = len(COMPR.vocab)
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
-enc = Encoder(ORIG.vocab.vectors, EMBEDDING_HEAD, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, EMBEDDING_HEAD, N_LAYERS, DEC_DROPOUT, DEVICE)
+enc = Encoder(ORIG.vocab.vectors, N_LAYERS, ENC_DROPOUT)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
@@ -433,7 +398,7 @@ def train(model,
     epoch_loss = 0
 
     for i, batch in enumerate(iterator):
-        src = torch.stack((batch.original, batch.head), dim=0)
+        src = torch.stack((batch.original, batch.depth), dim=0)
         trg = batch.compressed
 
         try:
@@ -484,7 +449,7 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
 
     with torch.no_grad():
         for i, batch in enumerate(iterator):
-            src = torch.stack((batch.original, batch.head), dim=0)
+            src = torch.stack((batch.original, batch.depth), dim=0)
             trg = batch.compressed
 
             try:
