@@ -342,7 +342,7 @@ class Seq2Seq(nn.Module):
 
     def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
-        """
+        '''
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
             max_len = trg.shape[0]
@@ -354,11 +354,22 @@ class Seq2Seq(nn.Module):
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
         else:
+            """
             input_ = trg[0, :]
             outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
-        """
-        input_ = trg[0, :]
-        outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
+            """
+        '''
+        batch_size = trg.shape[1]
+        max_len = trg.shape[0]
+        output_dim = self.decoder.output_dim
+        outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
+        output = outputs[0]
+        for t in range(max_len):
+            src_ = src[t, :]
+            # input_ = trg[t, :]
+            input_ = torch.topk(output, k=1).indices
+            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
+            outputs[t] = output
         return outputs
 
 
