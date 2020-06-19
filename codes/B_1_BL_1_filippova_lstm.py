@@ -194,7 +194,6 @@ ORIG.build_vocab(train, min_freq=1, vectors="glove.840B.300d", vectors_cache=VEC
 COMPR.build_vocab(train, min_freq=1)
 
 """
-"""
 # for testing use only small amount of data
 train, _ = train.split(split_ratio=0.01)
 val, _ = val.split(split_ratio=0.05)
@@ -202,6 +201,7 @@ val, _ = val.split(split_ratio=0.05)
 test, _ = test.split(split_ratio=0.05)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
+"""
 """
 """
 
@@ -342,34 +342,21 @@ class Seq2Seq(nn.Module):
 
     def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
-        '''
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
             max_len = trg.shape[0]
             output_dim = self.decoder.output_dim
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
+            output = outputs[0]
             for t in range(max_len):
                 src_ = src[t, :]
-                input_ = trg[t, :]
+                # input_ = trg[t, :]
+                input_ = torch.topk(output, k=1).indices
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
         else:
-            """
             input_ = trg[0, :]
             outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
-            """
-        '''
-        batch_size = trg.shape[1]
-        max_len = trg.shape[0]
-        output_dim = self.decoder.output_dim
-        outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
-        output = outputs[0]
-        for t in range(max_len):
-            src_ = src[t, :]
-            # input_ = trg[t, :]
-            input_ = torch.topk(output, k=1).indices
-            output, hidden, cell = self.decoder(src_, input_, hidden, cell)
-            outputs[t] = output
         return outputs
 
 
@@ -553,8 +540,8 @@ for epoch in range(start_epoch, N_EPOCHS):
                        accumulation_steps=ACCUMULATION_STEPS,
                        beam_width=BEAM_WIDTH,
                        verbose=TRAIN_VERBOSE,
-                       # val_in_epoch=val_iterator,
-                       # in_epoch_steps=512 // BATCH_SIZE
+                       val_in_epoch=val_iterator,
+                       in_epoch_steps=512 // BATCH_SIZE
                        )
 
     end_time = time.time()
