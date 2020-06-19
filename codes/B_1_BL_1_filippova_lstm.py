@@ -302,10 +302,12 @@ class Seq2Seq(nn.Module):
         cell = cell.repeat(1, beam_width, 1)
         output, hidden, cell = self.decoder(src_, input_, hidden, cell)
 
-        outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
-        outputs[0, :, :] = output
-        backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
-        backtrack[0, :, :] = output.topk(k=1, dim=1).indices
+        # outputs = torch.zeros(max_len, batch_size * beam_width, output_dim).to(self.device)
+        # outputs[0, :, :] = output
+        outputs = output.unsqueeze(0)
+        # backtrack = torch.zeros(max_len, batch_size * beam_width, 1, dtype=torch.long).to(self.device)
+        # backtrack[0, :, :] = output.topk(k=1, dim=1).indices
+        backtrack = output.topk(k=1, dim=1).indices.unsqueeze(0)
 
         input_ = output.topk(k=1, dim=1).indices
 
@@ -329,19 +331,27 @@ class Seq2Seq(nn.Module):
             cell = cell.gather(dim=1, index=states_beams)
 
             outputs_beams = beams.repeat(t, 1, output_dim)
-            outputs[:t, :, :] = outputs[:t, :, :].gather(dim=1, index=outputs_beams)
-            outputs[t, :, :] = output.gather(dim=0, index=outputs_beams[0, :, :])
+            # outputs[:t, :, :] = outputs[:t, :, :].gather(dim=1, index=outputs_beams)
+            outputs_firstt = outputs[:t, :, :].gather(dim=1, index=outputs_beams)
+            # outputs[t, :, :] = output.gather(dim=0, index=outputs_beams[0, :, :])
+            outputs_t = output.gather(dim=0, index=outputs_beams[0, :, :]).unsqueeze(0)
+            outputs = torch.cat((outputs_firstt, outputs_t), dim=0)
             if t + 1 < max_len:
-                backtrack[:t, :, :] = backtrack[:t, :, :].gather(dim=1, index=outputs_beams[:, :, :1])
+                # backtrack[:t, :, :] = backtrack[:t, :, :].gather(dim=1, index=outputs_beams[:, :, :1])
+                backtrack_firstt = backtrack[:t, :, :].gather(dim=1, index=outputs_beams[:, :, :1])
 
                 top_indices = top_indices.fmod(output_dim).t().reshape(-1)
-                backtrack[t, :, 0] = top_indices
+                # backtrack[t, :, 0] = top_indices
+                backtrack_t = top_indices.unsqueeze(0).unsqueeze(2)
+
+                backtrack = torch.cat((backtrack_firstt, backtrack_t), dim=0)
 
                 input_ = top_indices
         return outputs[:, :batch_size, :].contiguous()
 
     def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
+        """
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
             max_len = trg.shape[0]
@@ -357,6 +367,9 @@ class Seq2Seq(nn.Module):
         else:
             input_ = trg[0, :]
             outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
+        """
+        input_ = trg[0, :]
+        outputs = self.batch_beam_predict(src, input_, hidden, cell, beam_width, LP_ALPHA)
         return outputs
 
 
