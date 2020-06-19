@@ -198,14 +198,14 @@ DEP.build_vocab(train, min_freq=1)
 COMPR.build_vocab(train, min_freq=1)
 
 """
+"""
 # for testing use only small amount of data
-# train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.05)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.05)
 # test, _ = train.split(split_ratio=0.1)
 # val = test = train
-"""
 """
 """
 
@@ -301,8 +301,8 @@ class Decoder(nn.Module):
         self.dep_dim = dep_dim
         self.src_emb_dim = pretrained_vectors.shape[1]
         self.dep_emb_dim = dep_emb_dim
-        self.emb_dim = self.src_emb_dim + self.dep_emb_dim
-        self.hid_dim = self.emb_dim + 1
+        self.emb_dim = self.src_emb_dim + self.dep_emb_dim + 1
+        self.hid_dim = self.emb_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
         self.dropout = dropout
