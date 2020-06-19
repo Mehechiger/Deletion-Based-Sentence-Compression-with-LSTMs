@@ -198,7 +198,7 @@ COMPR.build_vocab(train, min_freq=1)
 
 """
 # for testing use only small amount of data
-# train, _ = train.split(split_ratio=0.0001)
+train, _ = train.split(split_ratio=0.0001)
 val, _ = val.split(split_ratio=0.05)
 # _, val = train.split(split_ratio=0.9995)
 test, _ = test.split(split_ratio=0.05)
@@ -236,28 +236,33 @@ train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val,
 
 class Encoder(nn.Module):
 
-    def __init__(self, pretrained_vectors, n_layers, dropout):
+    def __init__(self, pretrained_vectors, depth_emb_dim, n_layers, dropout, device):
         super().__init__()
         self.src_emb_dim = pretrained_vectors.shape[1]
+        self.depth_emb_dim = depth_emb_dim
         self.hid_dim = self.src_emb_dim
         self.n_layers = n_layers
         self.dropout = dropout
+        self.device = device
 
         self.embedding_text = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.rnn = nn.LSTM(self.src_emb_dim + 1, self.hid_dim, self.n_layers, dropout=self.dropout)
+        self.embedding_depth = lambda l: torch.eye(depth_emb_dim)[l.view(-1)].unsqueeze(0).to(self.device)
+        self.rnn = nn.LSTM(self.src_emb_dim + self.depth_emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
 
     def forward(self, src):
         text_embedded = self.embedding_text(src[0])
-        embedded = torch.cat((text_embedded, src[1].float().unsqueeze(2)), dim=2)
+        depth_embedded = torch.cat([self.embedding_depth(src[1][i].unsqueeze(0)) for i in range(src.shape[1])], dim=0)
+        embedded = torch.cat((text_embedded, depth_embedded), dim=2)
         outputs, (hidden, cell) = self.rnn(embedded)
         return hidden, cell
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_dim, pretrained_vectors, n_layers, dropout, device):
+    def __init__(self, output_dim, pretrained_vectors, depth_emb_dim, n_layers, dropout, device):
         super().__init__()
 
         self.src_emb_dim = pretrained_vectors.shape[1]
+        self.depth_emb_dim = depth_emb_dim
         self.hid_dim = self.src_emb_dim
         self.output_dim = output_dim
         self.n_layers = n_layers
@@ -265,14 +270,16 @@ class Decoder(nn.Module):
         self.device = device
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        self.rnn = nn.LSTM(self.src_emb_dim + 1, self.hid_dim, self.n_layers, dropout=self.dropout)
+        self.embedding_depth = lambda l: torch.eye(depth_emb_dim)[l.view(-1)].unsqueeze(0).to(self.device)
+        self.rnn = nn.LSTM(self.src_emb_dim + self.depth_emb_dim, self.hid_dim, self.n_layers, dropout=self.dropout)
         self.out = nn.Linear(self.hid_dim, self.output_dim)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, hidden, cell):
         src = src.unsqueeze(1)
         text_embedded = self.embedding_src(src[0])
-        embedded = torch.cat((text_embedded, src[1].float().unsqueeze(2)), dim=2)
+        depth_embedded = self.embedding_depth(src[1])
+        embedded = torch.cat((text_embedded, depth_embedded), dim=2)
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
@@ -355,11 +362,12 @@ class Seq2Seq(nn.Module):
 
 
 OUTPUT_DIM = len(COMPR.vocab)
+DEPTH_EMB_DIM = 20
 N_LAYERS = 3
 ENC_DROPOUT = 0
 DEC_DROPOUT = 0.2
-enc = Encoder(ORIG.vocab.vectors, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, N_LAYERS, DEC_DROPOUT, DEVICE)
+enc = Encoder(ORIG.vocab.vectors, DEPTH_EMB_DIM, N_LAYERS, ENC_DROPOUT, DEVICE)
+dec = Decoder(OUTPUT_DIM, ORIG.vocab.vectors, DEPTH_EMB_DIM, N_LAYERS, DEC_DROPOUT, DEVICE)
 model = Seq2Seq(enc, dec, DEVICE)
 model.to(DEVICE)
 
