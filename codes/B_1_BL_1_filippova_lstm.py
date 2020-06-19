@@ -361,9 +361,11 @@ class Seq2Seq(nn.Module):
             max_len = trg.shape[0]
             output_dim = self.decoder.output_dim
             outputs = torch.zeros(max_len, batch_size, output_dim).to(self.device)
+            output = outputs[0]
             for t in range(max_len):
                 src_ = src[t, :]
-                input_ = trg[t, :]
+                # input_ = trg[t, :]
+                input_ = torch.topk(output, k=1).indices
                 output, hidden, cell = self.decoder(src_, input_, hidden, cell)
                 outputs[t] = output
         return outputs
