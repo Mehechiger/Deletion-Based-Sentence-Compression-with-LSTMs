@@ -257,50 +257,30 @@ class Attention(nn.Module):
         self.enc_hid_dim = enc_hid_dim
         self.dec_hid_dim = dec_hid_dim
         self.n_layers = n_layers
-        # self.attn = nn.Linear((enc_hid_dim * 2) + dec_hid_dim, dec_hid_dim)
         self.attn = nn.Linear(enc_hid_dim + enc_hid_dim + dec_hid_dim, dec_hid_dim)
         self.v = nn.Parameter(torch.rand(n_layers, dec_hid_dim))
-        # self.softmax = nn.Softmax(dim=2)
 
     def forward(self, hidden_i, cell_i, attn_input, i_layers):
-        # hidden = [batch size, dec hid dim]
-        # encoder_outputs = [src sent len, batch size, enc hid dim * 2]
         batch_size = attn_input.shape[1]
         src_len = attn_input.shape[0]
-        # 重复操作，让隐藏状态的第二个维度和encoder相同
-        # hidden = hidden.unsqueeze(1).repeat(1, src_len, 1)
+
         hidden_i = hidden_i.unsqueeze(1).repeat(1, src_len, 1)
         cell_i = cell_i.unsqueeze(1).repeat(1, src_len, 1)
-        # 该函数按指定的向量来重新排列一个数组，在这里是调整encoder输出的维度顺序，在后面能够进行比较
-        # encoder_outputs = encoder_outputs.permute(1, 0, 2)
-        # encoder_outputs = encoder_outputs.unsqueeze(0).permute(0, 2, 1, 3)
         attn_input = attn_input.permute(1, 0, 2)
-        # hidden = [batch size, src sent len, dec hid dim]
-        # encoder_outputs = [batch size, src sent len, enc hid dim * 2]
-        # encoder_outputs = encoder_outputs.repeat(self.n_layers, 1, 1, 1)
-        # 开始计算hidden和encoder_outputs之间的匹配值
-        # energy = torch.tanh(self.attn(torch.cat((hidden, encoder_outputs), dim=2)))
         states = torch.cat((hidden_i, cell_i, attn_input), dim=2)
         del hidden_i, cell_i, attn_input
-        energy = torch.tanh(self.attn(states))
-        # energy = [batch size, src sent len, dec hid dim]
-        # 调整energy的排序
-        # energy = energy.permute(0, 2, 1)
-        # energy = energy.permute(0, 1, 3, 2)
-        energy = energy.permute(0, 2, 1)
-        # energy = [batch size, dec hid dim, src sent len]
 
-        # v = [dec hid dim]
-        # v = self.v.repeat(batch_size, 1).unsqueeze(1)
-        # v = self.v.unsqueeze(1).unsqueeze(1).repeat(1, batch_size, 1, 1)
+        attn = self.attn(states)
+        del states
+
+        energy = torch.tanh(attn)
+        del attn
+
+        energy = energy.permute(0, 2, 1)
         v = self.v[i_layers].repeat(batch_size, 1).unsqueeze(1)
-        # v = [batch_size, 1, dec hid dim] 注意这个bmm的作用，对存储在两个批batch1和batch2内的矩阵进行批矩阵乘操
-        # attention = torch.bmm(v, energy).squeeze(1)
-        # attention = torch.stack([torch.bmm(v[i], energy[i]).squeeze(1) for i in range(self.n_layers)], dim=0)
         attention = torch.bmm(v, energy).squeeze(1)
-        # attention=[batch_size, src_len]
-        # return nn.Softmax(attention, dim=1)
-        # return self.softmax(attention)
+        del v, energy
+
         return F.softmax(attention, dim=1)
 
 
@@ -317,58 +297,52 @@ class Decoder(nn.Module):
         self.dropout = dropout
 
         self.embedding_src = nn.Embedding.from_pretrained(pretrained_vectors)
-        # self.rnn = nn.LSTM(self.emb_src_dim, hid_dim, n_layers, dropout=dropout)
         self.rnns = nn.ModuleList()
         for i in range(n_layers):
             input_size = self.emb_src_dim if i == 0 else self.hid_dim
             input_size += self.hid_dim  # attn output size
             self.rnns.append(nn.LSTM(input_size, self.hid_dim, 1))
         self.out = nn.Linear(hid_dim, output_dim)
-        # self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, src, hidden, cell, encoder_outputs):
         src = src.unsqueeze(0)
         embedded = self.embedding_src(src)
 
-        # attn = self.attention(hidden, cell, encoder_outputs)
-        # attn = attn.unsqueeze(1)
-        # attn = self.attention(hidden, cell, encoder_outputs).unsqueeze(2)
-        # encoder_outputs = encoder_outputs.permute(1, 0, 2)
-        # weighted = torch.bmm(attn, encoder_outputs)
-        # weighted = weighted.permute(1, 0, 2)
-        # weighted = torch.stack([torch.bmm(attn[i], encoder_outputs).permute(1, 0, 2) for i in range(self.n_layers) ], dim=0 )
-        # rnn_input = torch.cat((embedded, weighted), dim=2)
         hidden_s = []
         cell_s = []
         for i in range(self.n_layers):
             if i == 0:
                 rnn_input = embedded
                 attn_input = encoder_outputs
+                del embedded, encoder_outputs
             else:
                 rnn_input = F.dropout(output, self.dropout)
                 attn_input = output
+                del output
 
             attn = self.attention(hidden[i], cell[i], attn_input, i).unsqueeze(1)
-            # encoder_outputs = encoder_outputs.permute(1, 0, 2)
             attn_input = attn_input.permute(1, 0, 2)
-            # weighted = torch.stack([torch.bmm(attn[i], encoder_outputs).permute(1, 0, 2) for i in range(self.n_layers) ], dim=0 )
             weighted = torch.bmm(attn, attn_input).permute(1, 0, 2)
+            del attn, attn_input
 
-            # rnn_input = torch.cat((rnn_input, weighted[i]), dim=2)
             rnn_input = torch.cat((rnn_input, weighted), dim=2)
-            # rnn_input += weighted[i]
-            output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
-            # hidden[i] = hidden_[0]
-            # cell[i] = cell_[0]
-            hidden_s.append(hidden_)
-            cell_s.append(cell_)
-        hidden = torch.cat(hidden_s, dim=0)
-        cell = torch.cat(cell_s, dim=0)
+            del weighted
 
-        # output, (hidden, cell) = self.rnn(rnn_input, (hidden, cell))
-        # prediction = self.softmax(self.out(output.squeeze(0)))
-        prediction = F.log_softmax(self.out(output.squeeze(0)), dim=1)
-        return prediction, hidden, cell
+            output, (hidden_, cell_) = self.rnns[i](rnn_input, (hidden[i].unsqueeze(0), cell[i].unsqueeze(0)))
+            del rnn_input
+
+            hidden_s.append(hidden_)
+            del hidden_
+
+            cell_s.append(cell_)
+            del cell_
+        hidden = torch.cat(hidden_s, dim=0)
+        del hidden_s
+        cell = torch.cat(cell_s, dim=0)
+        del cell_s
+
+        output = self.out(output.squeeze(0))
+        return F.log_softmax(output, dim=1), hidden, cell
 
 
 class Seq2Seq(nn.Module):
