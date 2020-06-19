@@ -223,8 +223,8 @@ if checkpoints:
 
 # real batch size = BATCH_SIZE * ACCUMULATION_STEPS
 # -> gradient descend every accumulation_steps batches
-BATCH_SIZE = 8
-ACCUMULATION_STEPS = 4
+BATCH_SIZE = 4
+ACCUMULATION_STEPS = 8
 
 # https://www.jianshu.com/p/e5adb235399e
 train_iterator, val_iterator, test_iterator = BucketIterator.splits((train, val, test),
