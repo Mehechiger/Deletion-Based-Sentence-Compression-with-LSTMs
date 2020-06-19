@@ -166,7 +166,7 @@ TAG = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 DEP = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 HEAD = Field(use_vocab=False, init_token=SPE_IDX, eos_token=SPE_IDX, pad_token=SPE_IDX, unk_token=None)
 HEAD_TEXT = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
-DEPTH = Field(use_vocab=False, init_token=SPE_IDX, eos_token=SPE_IDX, pad_token=SPE_IDX, unk_token=None)
+DEPTH = Field(use_vocab=False, init_token=-1, eos_token=-1, pad_token=-1, unk_token=None)
 COMPR = Field(lower=True, init_token="<eos>", eos_token="<eos>", unk_token=None)
 
 FIELDS = {"original": ("original", ORIG),
@@ -176,7 +176,7 @@ FIELDS = {"original": ("original", ORIG),
           "dep": ("dep", DEP),
           "head": ("head", HEAD),
           # "head_text": ("head_text", HEAD_TEXT),
-          # "depth":("depth", DEPTH),
+          "depth": ("depth", DEPTH),
           "compressed": ("compressed", COMPR)
           }
 
@@ -270,7 +270,7 @@ class Encoder(nn.Module):
         self.dep_dim = dep_dim
         self.src_emb_dim = pretrained_vectors.shape[1]
         self.dep_emb_dim = dep_emb_dim
-        self.emb_dim = self.src_emb_dim + self.dep_emb_dim
+        self.emb_dim = self.src_emb_dim + self.dep_emb_dim + 1
         self.hid_dim = self.emb_dim
         self.n_layers = n_layers
         self.dropout = dropout
@@ -284,7 +284,12 @@ class Encoder(nn.Module):
         text_embedded = self.embedding_text(src[0])
         dep_embedded = self.embedding_dep(src[1])
         head_embedded = self.embedding_head(src[2])
-        embedded = torch.cat((text_embedded, dep_embedded + head_embedded), dim=2)
+        embedded = torch.cat((text_embedded,
+                              dep_embedded + head_embedded,
+                              src[3].float().unsqueeze(2)
+                              ),
+                             dim=2
+                             )
         outputs, (hidden, cell) = self.rnn(embedded)
         return hidden, cell
 
@@ -297,7 +302,7 @@ class Decoder(nn.Module):
         self.src_emb_dim = pretrained_vectors.shape[1]
         self.dep_emb_dim = dep_emb_dim
         self.emb_dim = self.src_emb_dim + self.dep_emb_dim
-        self.hid_dim = self.emb_dim
+        self.hid_dim = self.emb_dim + 1
         self.output_dim = output_dim
         self.n_layers = n_layers
         self.dropout = dropout
@@ -315,7 +320,12 @@ class Decoder(nn.Module):
         text_embedded = self.embedding_src(src[0])
         dep_embedded = self.embedding_dep(src[1])
         head_embedded = self.embedding_head(src[2])
-        embedded = torch.cat((text_embedded, dep_embedded + head_embedded), dim=2)
+        embedded = torch.cat((text_embedded,
+                              dep_embedded + head_embedded,
+                              src[3].float().unsqueeze(2)
+                              ),
+                             dim=2
+                             )
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
         prediction = self.softmax(self.out(output.squeeze(0)))
         return prediction, hidden, cell
@@ -444,7 +454,7 @@ def train(model,
     epoch_loss = 0
 
     for i, batch in enumerate(iterator):
-        src = torch.stack((batch.original, batch.dep, batch.head), dim=0)
+        src = torch.stack((batch.original, batch.dep, batch.head, batch.depth), dim=0)
         trg = batch.compressed
 
         try:
@@ -495,7 +505,7 @@ def evaluate(model, iterator, criterion, beam_width=3, verbose=False):
 
     with torch.no_grad():
         for i, batch in enumerate(iterator):
-            src = torch.stack((batch.original, batch.dep, batch.head), dim=0)
+            src = torch.stack((batch.original, batch.dep, batch.head, batch.depth), dim=0)
             trg = batch.compressed
 
             try:
