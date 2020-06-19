@@ -351,6 +351,7 @@ class Seq2Seq(nn.Module):
 
     def forward(self, src, trg, beam_width, teacher_force):
         hidden, cell = self.encoder(torch.flip(src[1:, :], [0, ]))
+        # exposure bias: https://zhuanlan.zhihu.com/p/93030328
         """
         if teacher_force:  # teacher forcing mode
             batch_size = trg.shape[1]
