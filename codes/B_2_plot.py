@@ -35,8 +35,9 @@ def mask(df, plot):
 def plot(df, file_name):
     markers = ["o", "^", "s", "p", "d", "x", "P", "X", "D", "8", "*", "v"]
     linestyles = ['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ":"]
+
     plt.figure(figsize=(25, 15))
-    sns.pointplot(x="epoch", y="F1", hue='model', kind='line', data=df,
+    sns.pointplot(x="epoch", y="F1_RL", hue='model', kind='line', data=df,
                   markers=markers,
                   linestyles=linestyles,
                   scale=0.8
@@ -44,7 +45,19 @@ def plot(df, file_name):
     ax = plt.gca()
     xticks = ax.get_xticks()
     ax.set_xticklabels(["test" if x == len(xticks) - 1 else x + 1 for x in xticks])
-    plt.savefig(PATH_PLOTS + file_name + "_f1.png")
+    plt.savefig(PATH_PLOTS + file_name + "_f1rl.png")
+    plt.clf()
+
+    plt.figure(figsize=(25, 15))
+    sns.pointplot(x="epoch", y="F1_R1", hue='model', kind='line', data=df,
+                  markers=markers,
+                  linestyles=linestyles,
+                  scale=0.8
+                  )
+    ax = plt.gca()
+    xticks = ax.get_xticks()
+    ax.set_xticklabels(["test" if x == len(xticks) - 1 else x + 1 for x in xticks])
+    plt.savefig(PATH_PLOTS + file_name + "_f1r1.png")
     plt.clf()
 
     plt.figure(figsize=(25, 15))
@@ -64,7 +77,7 @@ sns.set(style="whitegrid")
 
 df = pd.read_csv(PATH_SCORES + "scores.csv")
 max_ = max(map(lambda x: int(x) if x != "test" else -1, df.epoch))
-df.loc[df.shape[0] + 1] = pd.Series({"model": None, "epoch": max_ + 1, "F1": None, "CR": None})
+df.loc[df.shape[0] + 1] = pd.Series({"model": None, "epoch": max_ + 1, "F1_RL": None, "F1_R1":None, "CR": None})
 df.epoch[df.epoch == "test"] = max_ + 2
 df.epoch = df.epoch.astype(int)
 df = df.sort_values(by=["model", "epoch"])

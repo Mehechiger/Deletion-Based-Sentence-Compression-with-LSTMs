@@ -69,26 +69,31 @@ def evaluate_model(model):
     for type_k, type_v in model.items():
         if type_k == "test":
             hyps, refs, origs = get_hyps_refs_origs(type_v)
-            f = get_avg_rouge(hyps, refs, metrics=['rouge-l'])['rouge-l']['f']
+            rouge = get_avg_rouge(hyps, refs, metrics=['rouge-l', 'rouge-1'])
+            f_rl = rouge['rouge-l']['f']
+            f_r1 = rouge['rouge-1']['f']
             cr = get_avg_cr(hyps, origs)
-            scores["test"] = {"F1": f, "CR": cr}
+            scores["test"] = {"F1_RL": f_rl, "F1_R1": f_r1, "CR": cr}
         elif type_k == "val":
             for epoch_k, epoch_v in type_v.items():
                 hyps, refs, origs = get_hyps_refs_origs(epoch_v)
-                f = get_avg_rouge(hyps, refs, metrics=['rouge-l'])['rouge-l']['f']
+                rouge = get_avg_rouge(hyps, refs, metrics=['rouge-l', 'rouge-1'])
+                f_rl = rouge['rouge-l']['f']
+                f_r1 = rouge['rouge-1']['f']
                 cr = get_avg_cr(hyps, origs)
-                scores[epoch_k] = {"F1": f, "CR": cr}
+                scores[epoch_k] = {"F1_RL": f_rl, "F1_R1": f_r1, "CR": cr}
     return scores
 
 
 def evaluate(dt):
-    scores = pd.DataFrame(columns=["model", "epoch", "F1", "CR"])
+    scores = pd.DataFrame(columns=["model", "epoch", "F1_RL", "F1_R1", "CR"])
     for model_k, model_v in dt.items():
         score = evaluate_model(model_v)
         for epoch_k, epoch_v in score.items():
             scores.loc[scores.shape[0] + 1] = pd.Series({"model": model_k,
                                                          "epoch": epoch_k,
-                                                         "F1": epoch_v["F1"],
+                                                         "F1_RL": epoch_v["F1_RL"],
+                                                         "F1_R1": epoch_v["F1_R1"],
                                                          "CR": epoch_v["CR"]
                                                          })
     return scores
@@ -97,6 +102,5 @@ def evaluate(dt):
 dt = get_data(get_fd(PATH_INPUT))
 df = evaluate(dt)
 df.to_csv(PATH_OUTPUT + "scores.csv")
-df_test = df[df.epoch=="test"]
-df_test.to_csv(PATH_OUTPUT+"scores_test.csv")
-
+df_test = df[df.epoch == "test"]
+df_test.to_csv(PATH_OUTPUT + "scores_test.csv")
