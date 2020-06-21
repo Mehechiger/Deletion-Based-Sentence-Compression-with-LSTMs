@@ -12,10 +12,20 @@ def count_features(label):
     return len(re.findall(feat_pattern, label))
 
 
-def mask(df, ns):
+def mask_count_features(df, ns):
     res = []
     for e in df:
         if type(e) != str or count_features(e) in ns:
+            res.append(True)
+        else:
+            res.append(False)
+    return res
+
+
+def mask(df, plot):
+    res = []
+    for e in df:
+        if type(e) != str or e in plot:
             res.append(True)
         else:
             res.append(False)
@@ -59,13 +69,29 @@ df.epoch[df.epoch == "test"] = max_ + 2
 df.epoch = df.epoch.astype(int)
 df = df.sort_values(by=["model", "epoch"])
 
-plot(df, "all")
+models = list(set(df.model))
+for i, v in enumerate(models):
+    if type(v) == str:
+        print("%d - %s" % (i, v))
+print("choose to plot, separate model with 1 space, return to separate plot, return again to end:")
+to_plots = []
+while True:
+    input_ = input()
+    if input_ == "":
+        break
+    to_plots.append(list(map(lambda x: models[int(x)], input_.split(" "))))
+print("ploting:")
+for to_plot in to_plots:
+    print(to_plot, end="...")
+    df_plot = df[mask(df.model, to_plot)]
+    plot(df_plot, "|".join(to_plot))
+    print(" done")
 
-df_1feat = df[mask(df.model, {0, 1})]
+print("1feat", end="...")
+df_1feat = df[mask_count_features(df.model, [0, 1])]
 plot(df_1feat, "1feat")
+print(" done")
 
-df_2feat = df[mask(df.model, {0, 2})]
-plot(df_2feat, "2feat")
-
-df_3feat = df[mask(df.model, {0, 3})]
-plot(df_3feat, "3feat")
+print("all", end="...")
+plot(df, "all")
+print(" done")
