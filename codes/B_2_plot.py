@@ -33,6 +33,7 @@ def mask(df, plot):
 
 
 def plot(df, file_name):
+    sns.set_palette(sns.color_palette("cubehelix", len(set(df.model))))
     markers = ["o", "x", "^", "P", "s", "p", "d", "X", "D", "8", "*", "v"]
     linestyles = ['-', '--', '-.', ':', '-',
                   '--', '-.', ':', '-', '--', '-.', ":"]
@@ -69,7 +70,6 @@ def plot(df, file_name):
 
 
 sns.set(style="whitegrid")
-sns.set_palette(sns.color_palette("cubehelix", 12))
 
 df = pd.read_csv(PATH_SCORES + "scores.csv")
 max_ = max(map(lambda x: int(x) if x != "test" else -1, df.epoch))
