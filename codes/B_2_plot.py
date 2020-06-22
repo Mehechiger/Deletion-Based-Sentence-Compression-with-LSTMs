@@ -33,15 +33,15 @@ def mask(df, plot):
 
 
 def plot(df, file_name):
-    markers = ["o", "^", "s", "p", "d", "x", "P", "X", "D", "8", "*", "v"]
+    markers = ["o", "x", "^", "P", "s", "p", "d", "X", "D", "8", "*", "v"]
     linestyles = ['-', '--', '-.', ':', '-',
                   '--', '-.', ':', '-', '--', '-.', ":"]
 
-    plt.figure(figsize=(15, 15))
+    plt.figure(figsize=(10, 10))
     sns.pointplot(x="epoch", y="F1_RL", hue='model', data=df,
                   markers=markers,
                   linestyles=linestyles,
-                  scale=0.5,
+                  scale=0.6,
                   )
     ax = plt.gca()
     xticks = ax.get_xticks()
@@ -50,11 +50,11 @@ def plot(df, file_name):
     plt.savefig(PATH_PLOTS + file_name + "_f1rl.png")
     plt.clf()
 
-    plt.figure(figsize=(20, 15))
+    plt.figure(figsize=(15, 10))
     sns.pointplot(x="epoch", y="CR", hue='model', kind='line', data=df,
                   markers=markers,
                   linestyles=linestyles,
-                  scale=0.5,
+                  scale=0.6,
                   )
     ax = plt.gca()
     xticks = ax.get_xticks()
@@ -65,6 +65,7 @@ def plot(df, file_name):
 
 
 sns.set(style="whitegrid")
+sns.set_palette(sns.color_palette("cubehelix", 12))
 
 df = pd.read_csv(PATH_SCORES + "scores.csv")
 max_ = max(map(lambda x: int(x) if x != "test" else -1, df.epoch))
