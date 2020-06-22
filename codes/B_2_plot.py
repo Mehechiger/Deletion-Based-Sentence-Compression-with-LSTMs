@@ -47,6 +47,8 @@ def plot(df, file_name):
     xticks = ax.get_xticks()
     ax.set_xticklabels(["test" if x == len(xticks) -
                         1 else x + 1 for x in xticks])
+    ax.xaxis.grid(True)
+    ax.yaxis.grid(True)
     plt.savefig(PATH_PLOTS + file_name + "_f1rl.png")
     plt.clf()
 
@@ -60,6 +62,8 @@ def plot(df, file_name):
     xticks = ax.get_xticks()
     ax.set_xticklabels(["test" if x == len(xticks) -
                         1 else x + 1 for x in xticks])
+    ax.xaxis.grid(True)
+    ax.yaxis.grid(True)
     plt.savefig(PATH_PLOTS + file_name + "_cr.png")
     plt.clf()
 
