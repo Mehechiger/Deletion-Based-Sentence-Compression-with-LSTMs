@@ -22,11 +22,9 @@ def get_data(fd):
         if ele[1] and ele[1] != ['.DS_Store']:
             for doc in ele[1]:
                 if re.match('val_res', doc):
-                    data[ele[0].split(
-                        "/")[-1].split("]")[-1]]["val"][int(doc.split('.')[0][13:])] = ele[0] + '/' + doc
+                    data[ele[0].split("/")[-1].split("]")[-1]]["val"][int(doc.split('.')[0][13:])] = ele[0] + '/' + doc
                 if re.match('test_', doc):
-                    data[ele[0].split("/")[-1].split("]")[-1]
-                         ]["test"] = ele[0] + '/' + doc
+                    data[ele[0].split("/")[-1].split("]")[-1]]["test"] = ele[0] + '/' + doc
     return data
 
 
@@ -71,7 +69,7 @@ def evaluate_model(model):
     for type_k, type_v in model.items():
         if type_k == "test":
             hyps, refs, origs = get_hyps_refs_origs(type_v)
-            rouge = get_avg_rouge(hyps, refs, metrics=['rouge-l', 'rouge-n'])
+            rouge = get_avg_rouge(hyps, refs, metrics=['rouge-l', 'rouge-1'])
             f_rl = rouge['rouge-l']['f']
             f_r1 = rouge['rouge-1']['f']
             cr = get_avg_cr(hyps, origs)
@@ -79,8 +77,7 @@ def evaluate_model(model):
         elif type_k == "val":
             for epoch_k, epoch_v in type_v.items():
                 hyps, refs, origs = get_hyps_refs_origs(epoch_v)
-                rouge = get_avg_rouge(hyps, refs, metrics=[
-                                      'rouge-l', 'rouge-n'])
+                rouge = get_avg_rouge(hyps, refs, metrics=['rouge-l', 'rouge-1'])
                 f_rl = rouge['rouge-l']['f']
                 f_r1 = rouge['rouge-1']['f']
                 cr = get_avg_cr(hyps, origs)
