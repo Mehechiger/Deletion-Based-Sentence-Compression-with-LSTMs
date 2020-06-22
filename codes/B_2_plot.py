@@ -37,7 +37,7 @@ def plot(df, file_name):
     linestyles = ['-', '--', '-.', ':', '-',
                   '--', '-.', ':', '-', '--', '-.', ":"]
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(15, 15))
     sns.pointplot(x="epoch", y="F1_RL", hue='model', data=df,
                   markers=markers,
                   linestyles=linestyles,
@@ -50,7 +50,7 @@ def plot(df, file_name):
     plt.savefig(PATH_PLOTS + file_name + "_f1rl.png")
     plt.clf()
 
-    plt.figure(figsize=(15, 10))
+    plt.figure(figsize=(20, 15))
     sns.pointplot(x="epoch", y="CR", hue='model', kind='line', data=df,
                   markers=markers,
                   linestyles=linestyles,
